@@ -63,3 +63,14 @@ crashlytics-build.properties
 *.aab
 *.unitypackage
 *.app
+
+
+# [热更产物] 忽略自动化打包生成的 AssetBundle 及相关清单文件
+*.ab
+*.ab.meta
+*.manifest
+*.manifest.meta
+
+# 忽略 StreamingAssets 目录下的所有自动生成内容 (如果该目录只用于输出打包产物)
+/[Aa]ssets/[Ss]treaming[Aa]ssets/*
+!/[Aa]ssets/[Ss]treaming[Aa]ssets/.gitkeep
