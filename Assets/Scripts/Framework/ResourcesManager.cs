@@ -34,7 +34,7 @@ public class ResourcesManager : MonoBehaviour
     private void ParseVersionFile()
     {
         // 1. 拼接 FileList.txt 的绝对物理路径
-        string url = Path.Combine(Application.streamingAssetsPath, "FileList.txt");
+        string url = Path.Combine(PathUtil.BundleResourcesPath, "FileList.txt");
         // 2. 调用 C# 底层 IO 接口，将文本一口气全部读进内存，按行变成数组
         string[] data = File.ReadAllLines(url);
         // 3. 遍历每一行字符串，开始“切洋葱”
@@ -74,7 +74,7 @@ public class ResourcesManager : MonoBehaviour
                 continue;
 
             string depBundleName = dependences[i];
-            string depPath = Path.Combine(Application.streamingAssetsPath, depBundleName);
+            string depPath = Path.Combine(PathUtil.BundleResourcesPath, depBundleName);
             AssetBundleCreateRequest request = AssetBundle.LoadFromFileAsync(depPath);
             yield return request;
 
@@ -84,7 +84,7 @@ public class ResourcesManager : MonoBehaviour
         // 加载主资源包
         if (!m_LoadedBundle.ContainsKey(bundleName))
         {
-            string path = Path.Combine(Application.streamingAssetsPath, bundleName);
+            string path = Path.Combine(PathUtil.BundleResourcesPath, bundleName);
             AssetBundleCreateRequest request = AssetBundle.LoadFromFileAsync(path);
             yield return request;
 

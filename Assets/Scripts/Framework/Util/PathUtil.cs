@@ -10,6 +10,23 @@ public static class PathUtil
 
     public static readonly string BuildResourcesPath = DataPath + "/BuildResources";
 
+    // 判断是否是热更新模式
+    public static bool IsOnlineUpdateMode = false;
+
+    // 获取资源加载路径
+    public static string BundleResourcesPath
+    {
+        get
+        {
+           if(IsOnlineUpdateMode)
+            {
+                return Application.persistentDataPath;
+            }
+            return Application.streamingAssetsPath;
+        }
+    }
+
+
     public static string GetStandardPath(string path)
     {
         if (string.IsNullOrEmpty(path)) return string.Empty;
