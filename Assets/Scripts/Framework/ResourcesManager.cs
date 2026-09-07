@@ -107,6 +107,25 @@ public class ResourcesManager : MonoBehaviour
     /// <param name="action"></param>
     public void LoadAssets(string assetName, Action<UnityEngine.Object> action = null)
     {
+#if UNITY_EDITOR
+
+        if(UnityEditor.EditorPrefs.GetBool("IsEditorLoadMode", true))
+        {
+            Debug.Log($"<color=yellow>[BuildingResources加载模式] 正在从本地目录直读: {assetName}</color>");
+
+            UnityEngine.Object obj = UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetName);
+
+            if (obj == null)
+            {
+                Debug.LogError($"[BuildingResources加载模式] 找不到资源，请检查路径是否正确: {assetName}");
+            }
+
+            action?.Invoke(obj);
+
+            return;
+
+        }
+#endif 
         StartCoroutine(LoadBundleAsync(assetName, action));
     }
 
