@@ -28,7 +28,9 @@ public class ResourcesManager : MonoBehaviour
     private Dictionary<string, BundleInfo> m_BundleInfos = new Dictionary<string, BundleInfo>();
     private Dictionary<string, AssetBundle> m_LoadedBundle = new Dictionary<string, AssetBundle>();
 
-    // 解析版本文件的方法
+    /// <summary>
+    /// 解析版本文件的方法
+    /// </summary>
     private void ParseVersionFile()
     {
         // 1. 拼接 FileList.txt 的绝对物理路径
@@ -53,12 +55,19 @@ public class ResourcesManager : MonoBehaviour
         }
     }
 
-    IEnumerator LoadBundleAsync(string assetName, Action<UnityEngine.Object> action)
+    /// <summary>
+    /// 异步加载Bundle的方法
+    /// </summary>
+    /// <param name="assetName"></param>
+    /// <param name="action"></param>
+    /// <returns></returns>
+    IEnumerator LoadBundleAsync(string assetName, Action<UnityEngine.Object> action = null)
     {
         BundleInfo info = m_BundleInfos[assetName];
         string bundleName = info.bundleName;
         List<string> dependences = info.Dependences;
 
+        // 加载依赖包
         for(int i = 0; i < dependences.Count; i++)
         {
             if (m_LoadedBundle.ContainsKey(dependences[i]))
@@ -72,6 +81,7 @@ public class ResourcesManager : MonoBehaviour
             m_LoadedBundle.Add(dependences[i], request.assetBundle);
         }
 
+        // 加载主资源包
         if (!m_LoadedBundle.ContainsKey(bundleName))
         {
             string path = Path.Combine(Application.streamingAssetsPath, bundleName);
@@ -83,7 +93,6 @@ public class ResourcesManager : MonoBehaviour
 
 
         AssetBundle mainBundle = m_LoadedBundle[bundleName];
-
         AssetBundleRequest bundleRequest = mainBundle.LoadAssetAsync(assetName);
         yield return bundleRequest;
 
@@ -91,10 +100,64 @@ public class ResourcesManager : MonoBehaviour
 
     }
 
-
-    public void LoadAssets(string assetName, Action<UnityEngine.Object> action)
+    /// <summary>
+    /// 加载Bundle的方法
+    /// </summary>
+    /// <param name="assetName"></param>
+    /// <param name="action"></param>
+    public void LoadAssets(string assetName, Action<UnityEngine.Object> action = null)
     {
         StartCoroutine(LoadBundleAsync(assetName, action));
     }
-   
+
+    /// <summary>
+    /// 加载Lua资源
+    /// </summary>
+    /// <param name="assetName"></param>
+    /// <param name="action"></param>
+    public void LoadLua(string assetName, Action<UnityEngine.Object> action = null)
+    {
+        LoadAssets(PathUtil.GetLuaPath(assetName), action);
+    }
+
+    /// <summary>
+    ///  加载UI预制体资源
+    /// </summary>
+    /// <param name="assetName"></param>
+    /// <param name="action"></param>
+    public void LoadUI(string assetName, Action<UnityEngine.Object> action = null)
+    {
+        LoadAssets(PathUtil.GetUIPath(assetName), action);
+    }
+
+    /// <summary>
+    /// 加载音乐资源
+    /// </summary>
+    /// <param name="assetName"></param>
+    /// <param name="action"></param>
+    public void LoadMusic(string assetName, Action<UnityEngine.Object> action = null)
+    {
+        LoadAssets(PathUtil.GetMusicPath(assetName), action);
+    }
+
+    /// <summary>
+    /// 加载音效资源
+    /// </summary>
+    /// <param name="assetName"></param>
+    /// <param name="action"></param>
+    public void LoadSound(string assetName, Action<UnityEngine.Object> action = null)
+    {
+        LoadAssets(PathUtil.GetSoundPath(assetName), action);
+    }
+
+    /// <summary>
+    /// 加载特效资源
+    /// </summary>
+    /// <param name="assetName"></param>
+    /// <param name="action"></param>
+    public void LoadEffect(string assetName, Action<UnityEngine.Object> action = null)
+    {
+        LoadAssets(PathUtil.GetEffectPath(assetName), action);
+    }
+
 }
