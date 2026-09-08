@@ -1,3 +1,4 @@
+using Assets.Scripts.Framework.Util;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -150,8 +151,6 @@ public class BuildTool : Editor
         AssetDatabase.Refresh();
         Debug.Log(" AssetBundle 批量打包完成！");
     }
-
-
 
     /// <summary>
     /// 【新增方法】获取指定资源依赖的所有 AB 包名
