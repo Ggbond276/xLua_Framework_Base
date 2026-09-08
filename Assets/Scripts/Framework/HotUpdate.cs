@@ -224,6 +224,7 @@ namespace Assets.Scripts.Framework
             {
                 // ============全局进度统筹算法===========
                 // 没有需要更新的文件，直接满进度！
+                AppLog.LogSys("HotUpdate Check", "版本比对完成！本地沙盒资源已是最新，无需更新！");
                 OnProgressUpdate?.Invoke(1f, "资源已是最新，准备进入游戏...");
                 // =======================================
                 EnterGame();
@@ -256,6 +257,11 @@ namespace Assets.Scripts.Framework
             FileUtil.WriteFile(dictPath, m_ServerFileListData);
 
             AppLog.LogSys("HotUpdate Check", "所有补丁更新完毕！沙盒字典已刷新至最新版！");
+
+            // ============【核心漏掉的补丁：必须调用这个才能进游戏！】============
+            OnProgressUpdate?.Invoke(1f, "补丁下载完毕，准备进入游戏...");
+            EnterGame();
+            // ===================================================================
         }
 
 
@@ -299,39 +305,39 @@ namespace Assets.Scripts.Framework
             if (!info.url.StartsWith("http") && !info.url.StartsWith("file"))
             {
                 info.url = "file:///" + info.url;
-
-                // 构建并发起网络请求 等待response返回
-                UnityWebRequest webRequest = UnityWebRequest.Get(info.url);
-
-                // ============全局进度统筹算法===========
-                var operation = webRequest.SendWebRequest();
-
-                while (!operation.isDone)
-                {
-                    // 核心公式：(已完成数 + 当前下载进度) / 总文件数
-                    float globalProgress = (m_CompletedFileCount + operation.progress) / (float)m_TotalFileCount;
-
-                    string tip = $"正在加载: {info.fileName} ({m_CompletedFileCount}/{m_TotalFileCount})";
-                    OnProgressUpdate?.Invoke(globalProgress, tip);
-
-                    yield return null;
-                }
-                // =======================================
-
-                if (webRequest.result == UnityWebRequest.Result.ConnectionError || 
-                    webRequest.result == UnityWebRequest.Result.ProtocolError)
-                {
-                    AppLog.LogError("HotUpdate Net", $"下载致命错误: {info.url} | 报错: {webRequest.error}");
-                    yield break;
-                }
-
-                // 签收下载数据
-                info.fileData = webRequest.downloadHandler;
-                Complete?.Invoke(info);
-
-                // 5. 释放内存
-                webRequest.Dispose();
             }
+
+            // 构建并发起网络请求 等待response返回
+            UnityWebRequest webRequest = UnityWebRequest.Get(info.url);
+
+            // ============全局进度统筹算法===========
+            var operation = webRequest.SendWebRequest();
+
+            while (!operation.isDone)
+            {
+                // 核心公式：(已完成数 + 当前下载进度) / 总文件数
+                float globalProgress = (m_CompletedFileCount + operation.progress) / (float)m_TotalFileCount;
+
+                string tip = $"正在加载: {info.fileName} ({m_CompletedFileCount}/{m_TotalFileCount})";
+                OnProgressUpdate?.Invoke(globalProgress, tip);
+
+                yield return null;
+            }
+            // =======================================
+
+            if (webRequest.result == UnityWebRequest.Result.ConnectionError ||
+                webRequest.result == UnityWebRequest.Result.ProtocolError)
+            {
+                AppLog.LogError("HotUpdate Net", $"下载致命错误: {info.url} | 报错: {webRequest.error}");
+                yield break;
+            }
+
+            // 签收下载数据
+            info.fileData = webRequest.downloadHandler;
+            Complete?.Invoke(info);
+
+            // 5. 释放内存
+            webRequest.Dispose();
         }
         /// <summary>
         /// 底层网络工具：协程串行调度器，排队执行大宗文件批量拉取

@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a40dbd455276dfa46a133e6b8289705f, type: 3}
   m_Name: FrameworkConfig
   m_EditorClassIdentifier: 
-  ServerUrl: '[http://127.0.0.1:8080](http://127.0.0.1:8080)'
+  ServerUrl: http://127.0.0.1:8080/
