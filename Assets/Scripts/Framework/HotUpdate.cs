@@ -14,6 +14,16 @@ namespace Assets.Scripts.Framework
 {
     class HotUpdate : MonoBehaviour
     {
+
+        // ============全局进度统筹算法===========
+        public static Action<float, string> OnProgressUpdate;
+        private int m_TotalFileCount = 0;
+        private int m_CompletedFileCount = 0;
+        // =======================================
+
+        // 【新增：热更彻底完成的完工大喇叭】(无参数，只负责通知)
+        public static Action OnUpdateComplete;
+
         internal class DownFileInfo
         {
             public string url;
@@ -22,7 +32,7 @@ namespace Assets.Scripts.Framework
         }
  
         public readonly string FileListName = "FileList.txt";
-        public readonly string ServerUrl;
+        private  string m_ServerUrl;
         /// <summary>
         /// 只读区域文件列表二进制文件
         /// </summary>
@@ -38,6 +48,19 @@ namespace Assets.Scripts.Framework
         /// </summary>
         private void Start()
         {
+
+            FrameworkConfig config = Resources.Load<FrameworkConfig>("FrameworkConfig");
+
+            if (config == null)
+            {
+                AppLog.LogError("HotUpdate", "致命错误：找不到配置文件！请确保你在 Resources 文件夹下创建了 FrameworkConfig！");
+                return;
+            }
+
+            // 把你在 Unity 面板里填的地址，赋值给代码！
+           m_ServerUrl = config.ServerUrl;
+
+
             AppLog.LogSys("HotUpdate", "模块初始化，准备执行状态机...");
 
             if(IsFirstInstall())
@@ -50,6 +73,8 @@ namespace Assets.Scripts.Framework
                 CheckUpdate();
             }
         }
+
+
 
         /// <summary>
         /// 环境探针：探测沙盒区是否丢失 FileList 字典，以判定是否为首次安装
@@ -70,17 +95,22 @@ namespace Assets.Scripts.Framework
             return isExistsReadPath && !isExistsReadWritePath;
         }
 
+
+
+
         /// <summary>
         /// 释放管线起点：发起提取只读区 (StreamingAssets) 初始字典的网络请求
         /// </summary>
         private void ReleaseResources()
         {
             string url = Path.Combine(PathUtil.StreamingAssetsPath, FileListName);
-
             DownFileInfo info = new DownFileInfo { url = url };
-
-
             AppLog.LogSys("HotUpdate Unpack", "正在读取光盘原始字典...");
+
+            // ============全局进度统筹算法===========
+            m_TotalFileCount = 1;
+            m_CompletedFileCount = 0;
+            // =======================================
 
             // 这一步执行完成之后 所有的二进制数据就全部进到info中了
             StartCoroutine(DownloadFile(info, OnDownloadReadPathFileListComplete));
@@ -93,11 +123,13 @@ namespace Assets.Scripts.Framework
         private void OnDownloadReadPathFileListComplete(DownFileInfo file)
         {
             m_ReadPathFileListData = file.fileData.data;
-
-            // 这一步在干什么
             List<DownFileInfo> fileInfos = GetFileList(file.fileData.text, PathUtil.StreamingAssetsPath);
-
             AppLog.LogSys("HotUpdate Unpack", $"光盘字典解析成功，共需释放 {fileInfos.Count} 个资源包。开始批量提取...");
+
+            // ============全局进度统筹算法===========
+            m_TotalFileCount = fileInfos.Count;
+            m_CompletedFileCount = 0;
+            // =======================================
 
             StartCoroutine(DownloadFile(fileInfos, OnReleaseFileComplete, OnReleaseAllFileComplete));
         }
@@ -116,7 +148,6 @@ namespace Assets.Scripts.Framework
             AppLog.LogIO("HotUpdate Unpack", $"[释放成功] {fileInfo.fileName} -> 沙盒");
         }
 
-
         /// <summary>
         /// 释放管线终点：全量出厂包拷贝完毕，写入字典存档点，无缝衔接至更新管线
         /// </summary>
@@ -129,6 +160,106 @@ namespace Assets.Scripts.Framework
 
             CheckUpdate();
         }
+
+
+
+
+        /// <summary>
+        /// 更新管线起点：发起向云端资源服务器请求最新版本字典的网络请求
+        /// </summary>
+        private void CheckUpdate()
+        {
+            string url = Path.Combine(m_ServerUrl, FileListName);
+            DownFileInfo downFileInfo = new DownFileInfo { url = url };
+            AppLog.LogNet("HotUpdate Check", $"正在向服务器请求最新版本字典: {url}");
+
+            // ============全局进度统筹算法===========
+            m_TotalFileCount = 1;
+            m_CompletedFileCount = 0;
+            // =======================================
+
+            // 下载方法会将内容下载到DownFileInfo 这个快递包中 然后讲快递包交给回调函数处理
+            StartCoroutine(DownloadFile(downFileInfo, OnDownloadServerFileListComplete));
+        }
+
+        /// <summary>
+        /// 更新管线：云端字典下载完毕，执行本地沙盒差异比对 (Diff)，发起增量补丁下载
+        /// </summary>
+        /// <param name="file">包含云端最新字典文本与字节流的数据包</param>
+        private void OnDownloadServerFileListComplete(DownFileInfo file)
+        {
+            m_ServerFileListData = file.fileData.data;
+            // 存放云端下载下来的资源
+            List<DownFileInfo> serverFileInfos = GetFileList(file.fileData.text, m_ServerUrl);
+            // 存放比对后需要更新的资源
+            List<DownFileInfo> downListFiles = new List<DownFileInfo>();
+
+            AppLog.LogSys("HotUpdate Check", "云端字典解析完毕，开始与本地沙盒进行逐一比对...");
+
+            // 逐一进行文件比对
+            for(int i = 0; i < serverFileInfos.Count; i++)
+            {
+                // 拼接本地文件路径
+                string localFile = Path.Combine(Application.persistentDataPath, serverFileInfos[i].fileName);
+                // 如果本地不存在这个文件
+                if (!FileUtil.IsExists(localFile)) {
+                    serverFileInfos[i].url = Path.Combine(m_ServerUrl, serverFileInfos[i].fileName);
+                    downListFiles.Add(serverFileInfos[i]);
+                }
+            }
+
+            if(downListFiles.Count > 0)
+            {
+                AppLog.LogSys("HotUpdate Check", $"比对完成！发现 {downListFiles.Count} 个资源需要更新...");
+
+                // ============全局进度统筹算法===========
+                m_TotalFileCount = downListFiles.Count;
+                m_CompletedFileCount = 0;
+                // =======================================
+
+                // 下载完一个文件需要执行OnUpdateFileComplete回调
+                // 下载完全部文件需要执行OnUpdateAllFileComplete回调
+                StartCoroutine(DownloadFile(downListFiles, OnUpdateFileComplete, OnUpdateAllFileComplete));
+            } else
+            {
+                // ============全局进度统筹算法===========
+                // 没有需要更新的文件，直接满进度！
+                OnProgressUpdate?.Invoke(1f, "资源已是最新，准备进入游戏...");
+                // =======================================
+                EnterGame();
+            }
+
+
+        }
+
+        /// <summary>
+        /// 更新管线：单个云端补丁包下载完成，强制覆盖本地沙盒中的旧文件
+        /// </summary>
+        /// <param name="fileInfo">满载新版二进制流的数据包</param>
+        private void OnUpdateFileComplete(DownFileInfo fileInfo)
+        {
+            // 拼接文件写入路径
+            string writeFile = Path.Combine(Application.persistentDataPath, fileInfo.fileName);
+            // 将数据写入该路径
+            FileUtil.WriteFile(writeFile, fileInfo.fileData.data);
+
+            AppLog.LogIO("HotUpdate Check", $"[更新覆盖] {fileInfo.fileName} -> 沙盒");
+        }
+
+        /// <summary>
+        /// 更新管线终点：所有补丁更新完毕，写入最新云端字典，刷新本地版本锚点
+        /// </summary>
+        private void OnUpdateAllFileComplete()
+        {
+            // 拼接文件写入路径
+            string dictPath = Path.Combine(Application.persistentDataPath, FileListName);
+            FileUtil.WriteFile(dictPath, m_ServerFileListData);
+
+            AppLog.LogSys("HotUpdate Check", "所有补丁更新完毕！沙盒字典已刷新至最新版！");
+        }
+
+
+
 
         /// <summary>
         /// 核心解析器：将多行的 FileList.txt 文本转换为待下载的数据包裹列表
@@ -143,7 +274,7 @@ namespace Assets.Scripts.Framework
 
             List<DownFileInfo> downFileInfos = new List<DownFileInfo>(files.Length);
 
-            for(int i = 0; i < files.Length; i++)
+            for (int i = 0; i < files.Length; i++)
             {
                 if (string.IsNullOrEmpty(files[i])) continue;
 
@@ -156,58 +287,6 @@ namespace Assets.Scripts.Framework
                 downFileInfos.Add(downFileInfo);
             }
             return downFileInfos;
-        }
-
-
-        /// <summary>
-        /// 更新管线起点：发起向云端资源服务器请求最新版本字典的网络请求
-        /// </summary>
-        private void CheckUpdate()
-        {
-            string url = Path.Combine(ServerUrl, FileListName);
-            DownFileInfo downFileInfo = new DownFileInfo { url = url };
-            AppLog.LogNet("HotUpdate Check", $"正在向服务器请求最新版本字典: {url}");
-
-            // 下载方法会将内容下载到DownFileInfo 这个快递包中 然后讲快递包交给回调函数处理
-            StartCoroutine(DownloadFile(downFileInfo, OnDownloadServerFileListComplete));
-        }
-
-        /// <summary>
-        /// 更新管线：云端字典下载完毕，执行本地沙盒差异比对 (Diff)，发起增量补丁下载
-        /// </summary>
-        /// <param name="file">包含云端最新字典文本与字节流的数据包</param>
-        private void OnDownloadServerFileListComplete(DownFileInfo file)
-        {
-            m_ServerFileListData = file.fileData.data;
-            // 存放云端下载下来的资源
-            List<DownFileInfo> serverFileInfos = GetFileList(file.fileData.text, ServerUrl);
-            // 存放比对后需要更新的资源
-            List<DownFileInfo> downListFiles = new List<DownFileInfo>();
-
-            AppLog.LogSys("HotUpdate Check", "云端字典解析完毕，开始与本地沙盒进行逐一比对...");
-
-            // 逐一进行文件比对
-            for(int i = 0; i < serverFileInfos.Count; i++)
-            {
-                // 拼接本地文件路径
-                string localFile = Path.Combine(Application.persistentDataPath, serverFileInfos[i].fileName);
-                // 如果本地不存在这个文件
-                if (!FileUtil.IsExists(localFile)) {
-                    serverFileInfos[i].url = Path.Combine(ServerUrl, serverFileInfos[i].fileName);
-                    downListFiles.Add(serverFileInfos[i]);
-                }
-            }
-
-            if(downListFiles.Count > 0)
-            {
-                AppLog.LogSys("HotUpdate Check", $"比对完成！发现 {downListFiles.Count} 个资源需要更新...");
-
-                // 下载完一个文件需要执行OnUpdateFileComplete回调
-                // 下载完全部文件需要执行OnUpdateAllFileComplete回调
-                StartCoroutine(DownloadFile(downListFiles, OnUpdateFileComplete, OnUpdateAllFileComplete));
-            }
-
-
         }
 
         /// <summary>
@@ -223,9 +302,23 @@ namespace Assets.Scripts.Framework
 
                 // 构建并发起网络请求 等待response返回
                 UnityWebRequest webRequest = UnityWebRequest.Get(info.url);
-                yield return webRequest.SendWebRequest();
 
-                if(webRequest.result == UnityWebRequest.Result.ConnectionError || 
+                // ============全局进度统筹算法===========
+                var operation = webRequest.SendWebRequest();
+
+                while (!operation.isDone)
+                {
+                    // 核心公式：(已完成数 + 当前下载进度) / 总文件数
+                    float globalProgress = (m_CompletedFileCount + operation.progress) / (float)m_TotalFileCount;
+
+                    string tip = $"正在加载: {info.fileName} ({m_CompletedFileCount}/{m_TotalFileCount})";
+                    OnProgressUpdate?.Invoke(globalProgress, tip);
+
+                    yield return null;
+                }
+                // =======================================
+
+                if (webRequest.result == UnityWebRequest.Result.ConnectionError || 
                     webRequest.result == UnityWebRequest.Result.ProtocolError)
                 {
                     AppLog.LogError("HotUpdate Net", $"下载致命错误: {info.url} | 报错: {webRequest.error}");
@@ -258,39 +351,18 @@ namespace Assets.Scripts.Framework
 
 
         /// <summary>
-        /// 更新管线：单个云端补丁包下载完成，强制覆盖本地沙盒中的旧文件
-        /// </summary>
-        /// <param name="fileInfo">满载新版二进制流的数据包</param>
-        private void OnUpdateFileComplete(DownFileInfo fileInfo)
-        {
-            // 拼接文件写入路径
-            string writeFile = Path.Combine(Application.persistentDataPath, fileInfo.fileName);
-            // 将数据写入该路径
-            FileUtil.WriteFile(writeFile, fileInfo.fileData.data);
-
-            AppLog.LogIO("HotUpdate Check", $"[更新覆盖] {fileInfo.fileName} -> 沙盒");
-        }
-
-        /// <summary>
-        /// 更新管线终点：所有补丁更新完毕，写入最新云端字典，刷新本地版本锚点
-        /// </summary>
-        private void OnUpdateAllFileComplete()
-        {
-            // 拼接文件写入路径
-            string dictPath = Path.Combine(Application.persistentDataPath, FileListName);
-            FileUtil.WriteFile(dictPath, m_ServerFileListData);
-
-            AppLog.LogSys("HotUpdate Check", "所有补丁更新完毕！沙盒字典已刷新至最新版！");
-        }
-
-        /// <summary>
         /// 全局管线终点：热更逻辑闭环，拨动底层路由开关至沙盒模式，进入游戏主业务流
         /// </summary>
         void EnterGame()
         {
+            // 1. 底层只负责自己该做的事：切断只读区路由，转向沙盒！
             PathUtil.IsOnlineUpdateMode = true;
-
             AppLog.LogSys("HotUpdate End", "热更全管线结束，已切断只读区路由，正式进入游戏主逻辑！");
+
+            // 2. 框架职责结束，拿起大喇叭通知全服：“我干完了！接下来你们业务层看着办！”
+            OnUpdateComplete?.Invoke();
+
+            // 3. 框架功成身退，绝对不写任何 SceneManager.LoadScene！
         }
     }
 }
