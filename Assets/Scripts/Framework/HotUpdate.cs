@@ -362,7 +362,7 @@ namespace Assets.Scripts.Framework
         void EnterGame()
         {
             // 1. 底层只负责自己该做的事：切断只读区路由，转向沙盒！
-            PathUtil.IsOnlineUpdateMode = true;
+            PathUtil.IsSandboxReady = true;
             AppLog.LogSys("HotUpdate End", "热更全管线结束，已切断只读区路由，正式进入游戏主逻辑！");
 
             // 2. 框架职责结束，拿起大喇叭通知全服：“我干完了！接下来你们业务层看着办！”

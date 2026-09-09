@@ -17,7 +17,6 @@ public class AssetModeTool : Editor
         EditorPrefs.SetBool(PrefsKey, !isEditorMode);
 
         Debug.Log($"<color=cyan>资源加载模式已切换：{(EditorPrefs.GetBool(PrefsKey, true) ? "【BuildingResources加载模式】" : "【BundleStreaming加载模式】")}</color>");
-
     }
 
     [MenuItem("Tools/开启 BuildingResources加载模式", true)]

@@ -22,8 +22,25 @@ namespace Assets.Scripts.Framework
             frameworkRoot = new GameObject("[Framework_Root]");
             GameObject.DontDestroyOnLoad(frameworkRoot);
 
-            // 初始化入口 只有热更新结束之后才能加载Manager
-            InitHotUpdate();
+            // 默认在真机上，永远是开启热更的
+            bool enableHotUpdate = true;
+
+#if UNITY_EDITOR
+            enableHotUpdate = UnityEditor.EditorPrefs.GetBool("IsEnableHotUpdate", true);
+#endif
+
+            if (enableHotUpdate)
+            {
+                // 精准说明模式和寻址目标
+                AppLog.LogSys("GameApp", "[管线] 热更模式: 开启。寻址目标: 云端与沙盒区。");
+                InitHotUpdate();
+            }
+            else
+            {
+                // 精准说明模式和寻址目标
+                AppLog.LogSys("GameApp", "[管线] 热更模式: 关闭 (编辑器环境)。寻址目标: 本地只读光盘区。");
+                InitManager();
+            }
         }
 
         /// <summary>
@@ -32,11 +49,9 @@ namespace Assets.Scripts.Framework
         private static void InitHotUpdate()
         {
             // 3. 挂载热更管线控制器
+            AppLog.LogSys("GameApp", "[事件] 监听热更完成信号...");
+            HotUpdate.OnUpdateComplete += OnHotUpdateDone;
             frameworkRoot.AddComponent<HotUpdate>();
-
-            // （未来你的 NetworkManager、AudioManager 都可以写在这里自动挂载）
-
-            AppLog.LogSys("GameApp", "框架装配完毕！等待 HotUpdate 接管流程...");
         }
 
         /// <summary>
@@ -47,7 +62,7 @@ namespace Assets.Scripts.Framework
             // 第一步：卸磨杀驴！立刻注销事件，防止未来重复触发导致内存泄漏
             HotUpdate.OnUpdateComplete -= OnHotUpdateDone;
 
-            AppLog.LogSys("GameApp", "收到热更管线完工信号！接力棒交回主框架，开始装配 GameManager...");
+            AppLog.LogSys("GameApp", "[管线] 热更完毕，转入管家系统初始化。");
 
             // 第二步：在这个绝对安全的时机，才去初始化管家！
             InitManager();
@@ -56,7 +71,7 @@ namespace Assets.Scripts.Framework
         private static void InitManager()
         {
             frameworkRoot.AddComponent<GameManager>();
-            AppLog.LogSys("GameApp", "框架装配彻底完毕！正式进入游戏！");
+            AppLog.LogSys("GameApp", "[初始化] 管家系统装配完毕，进入游戏主逻辑。");
         }
 
     }

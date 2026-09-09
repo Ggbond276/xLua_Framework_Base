@@ -12,15 +12,30 @@ namespace Assets.Scripts.Framework.Util
 
         public static readonly string BuildResourcesPath = DataPath + "/BuildResources";
 
+        // ==============================================================================
+        // TODO: 【架构优化补丁】当前的热更存储策略属于“偷懒的暴力全量拷贝”版本。
+        // 
+        // [当前痛点]：
+        // 现阶段只要触发热更，就会把只读区 (StreamingAssets) 的原始包全量拷贝到沙盒区。
+        // 这会导致游戏首包在玩家手机里的硬盘占用瞬间翻倍（极度消耗存储空间），且拷贝过程极慢。
+        // 
+        // [未来强化方向 - Smart Routing (智能路由双轨制)]：
+        // 1. 废除首包全量拷贝机制，只读区资源原封不动。
+        // 2. 将下方的沙盒就绪开关，升级为“按需寻址器”：
+        //    - 当业务层请求资源时，优先去沙盒区 (persistentDataPath) 查找是否有最新的增量热更补丁。
+        //    - 如果沙盒里没有，则 Fallback（自动回退）去只读区 (StreamingAssets) 读取出厂包。
+        // ==============================================================================
+
         // 判断是否是热更新模式
-        public static bool IsOnlineUpdateMode = false;
+        public static bool IsSandboxReady = false;
 
         // 获取资源加载路径
         public static string BundleResourcesPath
         {
             get
             {
-                if (IsOnlineUpdateMode)
+                // 补丁：未来这里不再是简单的 if-else，而应该传入 assetName，进行真实的文件存在性校验
+                if (IsSandboxReady)
                 {
                     return Application.persistentDataPath;
                 }

@@ -1,4 +1,5 @@
 using Assets.Scripts.Framework;
+using Assets.Scripts.Framework.Manager;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,7 +10,7 @@ public class Test : MonoBehaviour
     void Start()
     {
         // 现在的终极清爽写法：只传名字，结合 Lambda 闭包秒杀一切！
-        ResourcesManager.Instance.LoadUI("Button", (obj) =>
+       GameManager.Resources.LoadUI("Button", (obj) =>
         {
             if (obj != null)
             {

@@ -12,9 +12,10 @@ namespace Assets.Scripts.Framework.Manager
 
     internal class ResourcesManager : MonoBehaviour
     {
-        private void Awake()
+
+        // 自己调用初始化方法
+        public void Init()
         {
-            // 2. 改在 Awake 中解析，确保数据最先就绪
             this.ParseVersionFile();
         }
 
@@ -34,6 +35,7 @@ namespace Assets.Scripts.Framework.Manager
         private Dictionary<string, AssetBundle> m_LoadedBundle = new Dictionary<string, AssetBundle>();
 
         /// <summary>
+        /// 这个方法的作用就是将FileList这个文件列表中的信息全部变成对象存入内存中
         /// 解析版本文件的方法 Assets/BuildResources/UI/login.prefab|login.ab|common_ui.ab|shader.ab
         /// 文件路径："Assets/BuildResources/UI/login.prefab"
         /// 主包名："login.ab"
@@ -49,18 +51,26 @@ namespace Assets.Scripts.Framework.Manager
             // 3. 遍历每一行字符串，开始“切洋葱”
             for (int i = 0; i < data.Length; i++)
             {
+                // infos[] 里面包含的是拆解出来的所有文件信息
                 string[] infos = data[i].Split('|');
+                // 这里就是将信息进行组装存储
                 BundleInfo bundleInfo = new BundleInfo();
                 bundleInfo.AssetsName = infos[0];
                 bundleInfo.bundleName = infos[1];
                 bundleInfo.Dependences = new List<string>();
-
                 for (int j = 2; j < infos.Length; j++)
                 {
                     bundleInfo.Dependences.Add(infos[j]);
                 }
 
                 m_BundleInfos.Add(infos[0], bundleInfo);
+
+
+                // 如果我们找到了Lua的脚本文件就需要弄一份放到LuaManager中
+                if(infos[0].IndexOf("LuaScripts") > 0)
+                {
+                    GameManager.Lua.AddLuaName(infos[0]);
+                }
             }
 
         }
