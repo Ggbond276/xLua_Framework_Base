@@ -7,18 +7,13 @@ using Unity.VisualScripting;
 using UnityEngine;
 
 
-namespace Assets.Scripts.Framework
+namespace Assets.Scripts.Framework.Manager
 {
 
-    public class ResourcesManager : MonoBehaviour
+    internal class ResourcesManager : MonoBehaviour
     {
-        // 增加单例，方便全局访问
-        public static ResourcesManager Instance;
-
         private void Awake()
         {
-            // 1. 初始化单例
-            Instance = this;
             // 2. 改在 Awake 中解析，确保数据最先就绪
             this.ParseVersionFile();
         }
@@ -29,12 +24,21 @@ namespace Assets.Scripts.Framework
             public string bundleName;
             public List<string> Dependences;
         }
-
+        /// <summary>
+        /// key：ab包的地址信息  value：1.ab包的名称，2.ab包的依赖包的名称列表
+        /// </summary>
         private Dictionary<string, BundleInfo> m_BundleInfos = new Dictionary<string, BundleInfo>();
+        /// <summary>
+        /// key：ab包的名称 value：ab包的真正的内存资源
+        /// </summary>
         private Dictionary<string, AssetBundle> m_LoadedBundle = new Dictionary<string, AssetBundle>();
 
         /// <summary>
-        /// 解析版本文件的方法
+        /// 解析版本文件的方法 Assets/BuildResources/UI/login.prefab|login.ab|common_ui.ab|shader.ab
+        /// 文件路径："Assets/BuildResources/UI/login.prefab"
+        /// 主包名："login.ab"
+        /// 依赖包名："common_ui.ab"
+        /// 依赖包名："shader.ab"
         /// </summary>
         private void ParseVersionFile()
         {
@@ -58,6 +62,7 @@ namespace Assets.Scripts.Framework
 
                 m_BundleInfos.Add(infos[0], bundleInfo);
             }
+
         }
 
         /// <summary>
@@ -78,6 +83,7 @@ namespace Assets.Scripts.Framework
                 if (m_LoadedBundle.ContainsKey(dependences[i]))
                     continue;
 
+                // 从硬盘中将资源弄到硬盘仓库中 由于从硬盘里面读资源是非常消耗时间的事情 所以要使用协程挂起
                 string depBundleName = dependences[i];
                 string depPath = Path.Combine(PathUtil.BundleResourcesPath, depBundleName);
                 AssetBundleCreateRequest request = AssetBundle.LoadFromFileAsync(depPath);
@@ -96,7 +102,7 @@ namespace Assets.Scripts.Framework
                 m_LoadedBundle.Add(bundleName, request.assetBundle);
             }
 
-
+            // 从内存里面读取资源
             AssetBundle mainBundle = m_LoadedBundle[bundleName];
             AssetBundleRequest bundleRequest = mainBundle.LoadAssetAsync(assetName);
             yield return bundleRequest;
