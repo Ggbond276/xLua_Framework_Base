@@ -1,0 +1,6 @@
+
+print("<color=green>[Lua] 大吉大利，今晚吃鸡！Lua 虚拟机成功接管世界！</color>")
+
+function Main()
+    print("<color=yellow>[Lua] Main函数被调用，开始加载UI和游戏业务...</color>")
+end

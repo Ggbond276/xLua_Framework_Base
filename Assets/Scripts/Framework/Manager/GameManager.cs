@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Assets.Scripts.Framework.Util;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEditor;
 using UnityEngine;
 
 namespace Assets.Scripts.Framework.Manager
@@ -39,6 +41,49 @@ namespace Assets.Scripts.Framework.Manager
             // 所以我们需要_lua先准备好容器准备接收
             _lua.Init();
             _resources.Init();
+
+            bool isEditorMode = false;
+#if UNITY_EDITOR
+            // 现在是编辑模式 全都从buildingResources读取数据 我们现在要将buildingResources里面的数据全部读取到内存里面去
+            isEditorMode = EditorPrefs.GetBool("isEditorMode", true);
+#endif
+            if(isEditorMode)
+            {
+                // 开发模式下 从buildingResources将脚本读入内存中
+                AppLog.LogSys("GameManager", "[管线] 直读模式：抛弃清单，直接暴力扫盘...");
+                _lua.EditorLoadLuaScript();
+
+
+                // 扫盘不是异步加载 是同步的
+                EnterLuaMain();
+            } else
+            {
+                AppLog.LogSys("GameManager", "[管线] AB包模式：按清单预加载 Lua 资源...");
+                // 走世界线 A：这是你漏掉的极其致命的一步！
+                // 必须呼叫 LuaManager 根据刚刚 Resources 吐出来的清单去读 AB 包！
+                _lua.OninitComplete += EnterLuaMain;
+
+                _lua.LoadLuaScript();
+            }
+            
+        }
+
+        // ======================== 接下来运行lua脚本 ==========================
+        private void EnterLuaMain()
+        {
+            AppLog.LogSys("GameManager", "框架底层全部就绪，准备进入 Lua 主循环...");
+
+            _lua.LuaEnv.DoString("require('Main')");
+
+            Action luaMainFunc = _lua.LuaEnv.Global.Get<Action>("Main");
+
+            if(luaMainFunc != null)
+            {
+                luaMainFunc.Invoke();
+            } else
+            {
+                AppLog.LogError("GameManager", "致命错误：在 Lua 中找不到 Main 函数！");
+            }
         }
     }
 }

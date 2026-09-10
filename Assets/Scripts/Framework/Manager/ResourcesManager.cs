@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 
 
@@ -16,7 +17,14 @@ namespace Assets.Scripts.Framework.Manager
         // 自己调用初始化方法
         public void Init()
         {
-            this.ParseVersionFile();
+            bool isEditorMode = false;
+#if UNITY_EDITOR
+            isEditorMode = EditorPrefs.GetBool("IsEditorLoadMode", false);
+#endif
+            if(!isEditorMode)
+            {
+                this.ParseVersionFile();
+            }
         }
 
         internal class BundleInfo
@@ -128,8 +136,10 @@ namespace Assets.Scripts.Framework.Manager
         /// <param name="action"></param>
         public void LoadAssets(string assetName, Action<UnityEngine.Object> action = null)
         {
-#if UNITY_EDITOR
 
+            
+#if UNITY_EDITOR
+            // 这里会直接从BuildingResources进行数据读取
             if (UnityEditor.EditorPrefs.GetBool("IsEditorLoadMode", true))
             {
                 Debug.Log($"<color=yellow>[BuildingResources加载模式] 正在从本地目录直读: {assetName}</color>");
@@ -147,6 +157,7 @@ namespace Assets.Scripts.Framework.Manager
 
             }
 #endif
+            // 这里是正常流程从Streaming进行数据读取
             StartCoroutine(LoadBundleAsync(assetName, action));
         }
 

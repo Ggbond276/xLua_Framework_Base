@@ -12,6 +12,8 @@ namespace Assets.Scripts.Framework.Util
 
         public static readonly string BuildResourcesPath = DataPath + "/BuildResources";
 
+        public static readonly string BuildResourcesLuaPath = DataPath + "/BuildResources/LuaScripts";
+
         // ==============================================================================
         // TODO: 【架构优化补丁】当前的热更存储策略属于“偷懒的暴力全量拷贝”版本。
         // 
