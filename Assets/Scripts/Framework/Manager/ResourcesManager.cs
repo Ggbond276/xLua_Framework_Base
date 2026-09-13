@@ -161,16 +161,19 @@ namespace Assets.Scripts.Framework.Manager
             StartCoroutine(LoadBundleAsync(assetName, action));
         }
 
+
+        // IMPORTANT: LoadLua是异步方法
         /// <summary>
         /// 加载Lua资源
         /// </summary>
-        /// <param name="assetName"></param>
+        /// <param name="luaName"></param>
         /// <param name="action"></param>
-        public void LoadLua(string assetName, Action<UnityEngine.Object> action = null)
+        public void LoadLua(string luaName, Action<UnityEngine.Object> action = null)
         {
-            LoadAssets(PathUtil.GetLuaPath(assetName), action);
+            LoadAssets(PathUtil.GetLuaPath(luaName), action);
         }
 
+        // IMPORTANT: LoadUI是异步方法
         /// <summary>
         ///  加载UI预制体资源
         /// </summary>
@@ -181,6 +184,7 @@ namespace Assets.Scripts.Framework.Manager
             LoadAssets(PathUtil.GetUIPath(assetName), action);
         }
 
+        // IMPORTANT: LoadMusic是异步方法
         /// <summary>
         /// 加载音乐资源
         /// </summary>
@@ -191,6 +195,7 @@ namespace Assets.Scripts.Framework.Manager
             LoadAssets(PathUtil.GetMusicPath(assetName), action);
         }
 
+        // IMPORTANT: LoadSound是异步方法
         /// <summary>
         /// 加载音效资源
         /// </summary>
@@ -201,6 +206,7 @@ namespace Assets.Scripts.Framework.Manager
             LoadAssets(PathUtil.GetSoundPath(assetName), action);
         }
 
+        // IMPORTANT: LoadEffect是异步方法
         /// <summary>
         /// 加载特效资源
         /// </summary>
