@@ -4,10 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using XLua;
 
 namespace Assets.Scripts.Framework.Util
 {
-    class AppLog
+    [LuaCallCSharp]
+    public class AppLog
     {
         // 预定义工业标准色号
         private const string Color_Sys = "#00FFFF";     // 青色 (系统/底层)

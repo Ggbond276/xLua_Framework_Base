@@ -1,0 +1,21 @@
+local UIShop = {}
+
+UIShop.txt_Title = false;
+UIShop.btn_Buy = false;
+
+function UIShop:OnOpen()
+    print("[Lua] UIShop 呼叫成功！")
+
+    if self.txt_Title then
+        self.txt_Title.text = "黑盒测试成功"
+    end
+
+    if self.btn_Buy then
+        self.btn_Buy.onClick:AddListener(function()
+            print("[Lua] 按钮被点击！C# 组件已完全听命于 Lua！")
+        end)
+    end
+end
+
+
+return UIShop;

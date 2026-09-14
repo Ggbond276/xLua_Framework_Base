@@ -7,20 +7,23 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
+using XLua;
 
 namespace Assets.Scripts.Framework.Manager
 {
+    // 1.UI层级枚举
+    [LuaCallCSharp]
+    public enum UILayer
+    {
+        Back = 0,
+        Mid = 1,
+        Tip = 2,
+        Loading = 3
+    }
+
+    [LuaCallCSharp]
     public class UIManager : MonoBehaviour
     {
-
-        // 1.UI层级枚举
-        public enum UILayer
-        {
-            Back = 0,
-            Mid = 1,
-            Tip = 2,
-            Loading = 3
-        }
 
         // 2. 4个层级TransForm
         public Transform BackLayer;

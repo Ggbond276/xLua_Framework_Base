@@ -1,0 +1,41 @@
+local AppLog = CS.Assets.Scripts.Framework.Util.AppLog
+local GameManager = CS.Assets.Scripts.Framework.Manager.GameManager
+local UILayer = CS.Assets.Scripts.Framework.Manager.UILayer
+
+-- ========================================================
+-- 核心修正：绝对不要写 local UIMain = {} ！
+-- 老师的 LuaBehaviour 会自动把下面的 function 捕获进 C# 的 m_ScriptEnv 里！
+-- ========================================================
+
+function OnOpen()
+    AppLog.LogSys("UIMain", "主界面加载成功！(沙盒绑定完美生效！)")
+
+    -- MVP 手动查找模式
+    local btnObj = CS.UnityEngine.GameObject.Find("btn_OpenShop")
+    
+    if btnObj ~= nil then
+        local btnComp = btnObj:GetComponent(typeof(CS.UnityEngine.UI.Button))
+        
+        if btnComp ~= nil then
+            AppLog.LogSys("UIMain", "成功找到 Button，绑上事件了！")
+            
+            -- 给按钮绑定事件 (实例方法干活，依然用冒号)
+            btnComp.onClick:AddListener(function()
+                AppLog.LogSys("UIMain", "商城按钮被点击，呼叫 GameManager 打开商城！")
+                GameManager.UI:OpenUI("UIShop", "UIShop", UILayer.Mid)
+            end)
+        else
+            AppLog.LogError("UIMain", "找不到 Button 组件！")
+        end
+    else
+        AppLog.LogError("UIMain", "找不到 btn_OpenShop 物体！")
+    end
+end
+
+function OnClose()
+    AppLog.LogSys("UIMain", "主界面被关闭")
+end
+
+-- ========================================================
+-- 也不需要写 return UIMain ！到这里直接结束！
+-- ========================================================

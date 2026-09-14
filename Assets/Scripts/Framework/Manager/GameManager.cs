@@ -6,10 +6,12 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
+using XLua;
 
 namespace Assets.Scripts.Framework.Manager
 {
-    class GameManager : MonoBehaviour
+    [LuaCallCSharp]
+    public class GameManager : MonoBehaviour
     {
         // 1. 点击开始之后 热更新加载完毕 GameManager脚本就会被挂载到Root并走初始化流程
         // 2. 然后就是ResourcesManager被挂载并初始化
@@ -39,6 +41,20 @@ namespace Assets.Scripts.Framework.Manager
             get { return _ui; }
         }
 
+
+        private static EntityManager _entity;
+        public static EntityManager Entity
+        {
+            get { return _entity; }
+        }
+
+        private static MySceneManager _scene;
+        private static MySceneManager Scene
+        {
+            get { return _scene;  }
+        }
+
+
         // ============================================================
         // 游戏启动
         // ============================================================
@@ -58,8 +74,8 @@ namespace Assets.Scripts.Framework.Manager
             _resources = this.gameObject.AddComponent<ResourcesManager>();
             _lua = this.gameObject.AddComponent<LuaManager>();
             _ui = this.gameObject.AddComponent<UIManager>();
-
-
+            _entity = this.gameObject.AddComponent<EntityManager>();
+            _scene = this.gameObject.AddComponent<MySceneManager>();
 
             // 为什么是lua先初始化呢 因为_resources在初始化的时候会给_lua吐数据
             // 所以我们需要_lua先准备好容器准备接收

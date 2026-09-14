@@ -113,5 +113,15 @@ namespace Assets.Scripts.Framework.Util
         {
             return string.Format("Assets/BuildResources/Effect/Prefabs/{0}.prefab", name);
         }
+
+        /// <summary>
+        /// 获取场景资源路径
+        /// </summary>
+        /// <param name="sceneName"></param>
+        /// <returns></returns>
+        public static string GetScenePath(string sceneName)
+        {
+            return string.Format("Assets/BuildResources/Scene/{0}.unity", sceneName);
+        }
     }
 }

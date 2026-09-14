@@ -1,6 +1,10 @@
-
-print("<color=green>[Lua] 大吉大利，今晚吃鸡！Lua 虚拟机成功接管世界！</color>")
-
+-- 注意看！这里加上了 Assets. 必须和 C# 里的 namespace 一字不差！
+local AppLog = CS.Assets.Scripts.Framework.Util.AppLog
+local UIManager = CS.Assets.Scripts.Framework.Manager.UIManager
+local UILayer = CS.Assets.Scripts.Framework.Manager.UILayer
+local GameManager = CS.Assets.Scripts.Framework.Manager.GameManager
 function Main()
-    print("<color=yellow>[Lua] Main函数被调用，开始加载UI和游戏业务...</color>")
+    -- 下面这行不用动，依然是用 . 调用静态方法
+    AppLog.LogSys("LuaMain", "老铁，我把家庭住址写对后，终于跨界成功了！")
+    GameManager.UI:OpenUI("UIMain", "UIMain", UILayer.Back)
 end

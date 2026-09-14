@@ -11,7 +11,7 @@ using UnityEngine;
 namespace Assets.Scripts.Framework.Manager
 {
 
-    internal class ResourcesManager : MonoBehaviour
+    public class ResourcesManager : MonoBehaviour
     {
 
         // 自己调用初始化方法
@@ -21,7 +21,7 @@ namespace Assets.Scripts.Framework.Manager
 #if UNITY_EDITOR
             isEditorMode = EditorPrefs.GetBool("IsEditorLoadMode", false);
 #endif
-            if(!isEditorMode)
+            if (!isEditorMode)
             {
                 this.ParseVersionFile();
             }
@@ -75,7 +75,7 @@ namespace Assets.Scripts.Framework.Manager
 
 
                 // 如果我们找到了Lua的脚本文件就需要弄一份放到LuaManager中
-                if(infos[0].IndexOf("LuaScripts") > 0)
+                if (infos[0].IndexOf("LuaScripts") > 0)
                 {
                     GameManager.Lua.AddLuaName(infos[0]);
                 }
@@ -137,7 +137,7 @@ namespace Assets.Scripts.Framework.Manager
         public void LoadAssets(string assetName, Action<UnityEngine.Object> action = null)
         {
 
-            
+
 #if UNITY_EDITOR
             // 这里会直接从BuildingResources进行数据读取
             if (UnityEditor.EditorPrefs.GetBool("IsEditorLoadMode", true))
@@ -215,6 +215,11 @@ namespace Assets.Scripts.Framework.Manager
         public void LoadEffect(string assetName, Action<UnityEngine.Object> action = null)
         {
             LoadAssets(PathUtil.GetEffectPath(assetName), action);
+        }
+
+        public void LoadScene(string sceneName, Action<UnityEngine.Object> action = null)
+        {
+            LoadAssets(PathUtil.GetScenePath(sceneName), action);
         }
 
     }

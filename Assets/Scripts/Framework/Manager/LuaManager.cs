@@ -11,7 +11,7 @@ using XLua;
 namespace Assets.Scripts.Framework.Manager
 {
     // TODO: 这里的MonoBehaviour 应该做成Mono单例使用的
-    internal class LuaManager : MonoBehaviour
+    public class LuaManager : MonoBehaviour
     {
         /// <summary>
         /// 委托：用来通知外界Lua脚本全部加载到内存中了
