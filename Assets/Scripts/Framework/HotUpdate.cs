@@ -46,7 +46,7 @@ namespace Assets.Scripts.Framework
         /// <summary>
         /// 热更状态机入口：判断环境，分流执行出厂释放或云端比对
         /// </summary>
-        private void Start()
+        public void Init()
         {
 
             FrameworkConfig config = Resources.Load<FrameworkConfig>("FrameworkConfig");

@@ -113,6 +113,11 @@ namespace Assets.Scripts.Framework.Manager
             LoadingLayer = CreateLayer("LoadingLayer", canvasObj.transform);
         }
 
+        internal void Init()
+        {
+            AppLog.LogDone("MGR", "UIManager | 初始化完成 | 4层级就绪");
+        }
+
         /// <summary>
         /// 创建层级面板
         /// </summary>
@@ -163,45 +168,28 @@ namespace Assets.Scripts.Framework.Manager
         /// <param name="luaName"></param>
         public void OpenUI(string uiName, string luaName, UILayer layer)
         {
-            // 检查传入是否为空
             if(string.IsNullOrEmpty(uiName))
             {
-                AppLog.LogSys("UIManager", "OpenUI 失败:uiName 为空");
+                AppLog.LogWarning("MGR", $"UIManager | OpenUI | 参数为空 | uiName={uiName}");
                 return;
             }
-
-
-            // 看是否命中缓存
             if (m_UIDict.TryGetValue(uiName, out GameObject ui))
             {
-                // 缓存命中 → 直接显示
-                // OnEnable 会自动触发 → 翻译官会通知 Lua:OnOpen
                 ui.SetActive(true);
                 ui.GetComponent<UILogic>()?.OnOpen();
                 return;
             }
-
-            // 如果缓存没有命中就异步进行资源加载
             GameManager.Resources.LoadUI(uiName, (UnityEngine.Object obj) => {
                 if (obj == null) return;
-
-                // 1.实例化并挂载
                 GameObject go = Instantiate(obj) as GameObject;
                 go.name = uiName;
                 go.transform.SetParent(GetLayer(layer), false);
                 go.transform.localScale = Vector3.one;
-
-                // 2.加入缓存
                 m_UIDict.Add(uiName, go);
-
-                // 3.挂翻译官
                 UILogic uiLogic = go.AddComponent<UILogic>();
-                // 4.初始化，实现UILogic和lua脚本的双向绑定
                 uiLogic.Init(luaName);
                 uiLogic.OnOpen();
-                
             });
-
         }
         /// <summary>
         /// 关闭UI面板
@@ -215,7 +203,7 @@ namespace Assets.Scripts.Framework.Manager
                 ui.SetActive(false);
             } else
             {
-                AppLog.LogService("UIManager" ,$"CloseUI 失败:缓存中找不到 {uiName}");
+                AppLog.LogWarning("MGR", $"UIManager | CloseUI | 缓存未命中 | {uiName}");
             }
         }
         /// <summary>

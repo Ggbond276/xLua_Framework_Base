@@ -12,34 +12,35 @@ namespace Assets.Scripts.Framework
     public static class GameApp
     {
 
-        private static GameObject frameworkRoot = null;
+        public static GameObject FrameworkRoot;
+        private static GameObject frameworkRoot
+        {
+            get { return FrameworkRoot; }
+            set { FrameworkRoot = value; }
+        }
 
         // 核心黑魔法：在场景加载之前，强行执行此方法
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        public static void InitFramwork()
+        public static void InitFramework()
         {
-            AppLog.LogSys("GameApp", "引擎生命周期劫持成功，开始装配底层框架...");
-            frameworkRoot = new GameObject("[Framework_Root]");
-            GameObject.DontDestroyOnLoad(frameworkRoot);
-
+            AppLog.LogSys("APP", "框架初始化 | 劫持引擎生命周期 | 完成");
+            // 创建FrameWork节点
+            FrameworkRoot = new GameObject("[Framework_Root]");
+            GameObject.DontDestroyOnLoad(FrameworkRoot);
             // 默认在真机上，永远是开启热更的
             bool enableHotUpdate = true;
-
 #if UNITY_EDITOR
             enableHotUpdate = UnityEditor.EditorPrefs.GetBool("IsEnableHotUpdate", true);
 #endif
-
             if (enableHotUpdate)
             {
-                // 精准说明模式和寻址目标
-                AppLog.LogSys("GameApp", "[管线] 热更模式: 开启。寻址目标: 云端与沙盒区。");
+                AppLog.LogIO("APP", "热更新 | 模式: 启用 | 目标: 云端/沙盒");
                 InitHotUpdate();
             }
             else
             {
-                // 精准说明模式和寻址目标
-                AppLog.LogSys("GameApp", "[管线] 热更模式: 关闭 (编辑器环境)。寻址目标: 本地只读光盘区。");
-                InitManager();
+                AppLog.LogIO("APP", "热更新 | 模式: 禁用 | 目标: 本地资源");
+                FrameworkBootstrap.Bootstrap();
             }
         }
 
@@ -48,10 +49,10 @@ namespace Assets.Scripts.Framework
         /// </summary>
         private static void InitHotUpdate()
         {
-            // 3. 挂载热更管线控制器
-            AppLog.LogSys("GameApp", "[事件] 监听热更完成信号...");
+            AppLog.LogIO("APP", "热更新 | 监听完成信号");
             HotUpdate.OnUpdateComplete += OnHotUpdateDone;
-            frameworkRoot.AddComponent<HotUpdate>();
+            HotUpdate hotUpdate = frameworkRoot.AddComponent<HotUpdate>();
+            hotUpdate.Init();
         }
 
         /// <summary>
@@ -59,19 +60,9 @@ namespace Assets.Scripts.Framework
         /// </summary>
         private static void OnHotUpdateDone()
         {
-            // 第一步：卸磨杀驴！立刻注销事件，防止未来重复触发导致内存泄漏
             HotUpdate.OnUpdateComplete -= OnHotUpdateDone;
-
-            AppLog.LogSys("GameApp", "[管线] 热更完毕，转入管家系统初始化。");
-
-            // 第二步：在这个绝对安全的时机，才去初始化管家！
-            InitManager();
-        }
-
-        private static void InitManager()
-        {
-            frameworkRoot.AddComponent<GameManager>();
-            AppLog.LogSys("GameApp", "[初始化] 管家系统装配完毕，进入游戏主逻辑。");
+            AppLog.LogIO("APP", "热更新 | 完成 | 转入框架初始化");
+            FrameworkBootstrap.Bootstrap();
         }
 
     }

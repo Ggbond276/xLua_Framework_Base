@@ -49,7 +49,7 @@ namespace Assets.Scripts.Framework.Manager
         }
 
         private static MySceneManager _scene;
-        private static MySceneManager Scene
+        public static MySceneManager Scene
         {
             get { return _scene;  }
         }
@@ -59,38 +59,34 @@ namespace Assets.Scripts.Framework.Manager
         // 游戏启动
         // ============================================================
         /// <summary>
-        /// Awake
-        /// LuaManager初始化 （加载出Lua文件名单，和Lua脚本到内存中）
-        /// ResourcesManager初始化（加载出资源文件名单）
+        /// Awake什么都不做
         /// </summary>
         private void Awake()
         {
-            // 对于Unity脚本 我们可以直接将 挂载 = 初始化
-            // 这个时候大家都做初始化工作 都不允许干活！
+        }
 
-            // --------------------------------------------------------
-            // 第一阶段：创建所有核心管理器
-            // --------------------------------------------------------
-            _resources = this.gameObject.AddComponent<ResourcesManager>();
-            _lua = this.gameObject.AddComponent<LuaManager>();
-            _ui = this.gameObject.AddComponent<UIManager>();
-            _entity = this.gameObject.AddComponent<EntityManager>();
-            _scene = this.gameObject.AddComponent<MySceneManager>();
+        /// <summary>
+        /// FrameworkBootstrp挂载之后 将管理器实例注入给我管理
+        /// </summary>
+        /// <param name="resources"></param>
+        /// <param name="lua"></param>
+        /// <param name="ui"></param>
+        /// <param name="entity"></param>
+        /// <param name="scene"></param>
+        public void Inject(ResourcesManager resources, LuaManager lua, UIManager ui, EntityManager entity, MySceneManager scene)
+        {
+            _resources = resources;
+            _lua = lua;
+            _ui = ui;
+            _entity = entity;
+            _scene = scene;
+        }
 
-            // 为什么是lua先初始化呢 因为_resources在初始化的时候会给_lua吐数据
-            // 所以我们需要_lua先准备好容器准备接收
-
-            // --------------------------------------------------------
-            // 第二阶段：初始化管理器
-            //
-            // Lua 必须先初始化，因为 ResourcesManager
-            // 后面会向 LuaManager 提供 Lua 资源。
-            // --------------------------------------------------------
-            _lua.Init();
-            _resources.Init();
-
-
-
+        /// <summary>
+        /// 等待基础框架搭建完毕
+        /// </summary>
+        public void OnFrameworkReady()
+        {
             // --------------------------------------------------------
             // 第三阶段：进入 Lua 主流程
             // --------------------------------------------------------
@@ -98,48 +94,33 @@ namespace Assets.Scripts.Framework.Manager
             bool isEditorMode = false;
 #if UNITY_EDITOR
             // 现在是编辑模式 全都从buildingResources读取数据 我们现在要将buildingResources里面的数据全部读取到内存里面去
-            isEditorMode = EditorPrefs.GetBool("isEditorMode", true);
+            isEditorMode = EditorPrefs.GetBool("IsEditorLoadMode", true);
 #endif
-            if(isEditorMode)
+            if (isEditorMode)
             {
-                // 开发模式下 从buildingResources将脚本读入内存中
-                AppLog.LogSys("GameManager", "[管线] 直读模式：抛弃清单，直接暴力扫盘...");
+                AppLog.LogIO("CORE", "编辑器模式 | 直读本地资源");
                 _lua.EditorLoadLuaScript();
-
-
-                // 扫盘不是异步加载 是同步的
                 EnterLuaMain();
-            } else
+            }
+            else
             {
-                AppLog.LogSys("GameManager", "[管线] AB包模式：按清单预加载 Lua 资源...");
-                // 走世界线 A：这是你漏掉的极其致命的一步！
-                // 必须呼叫 LuaManager 根据刚刚 Resources 吐出来的清单去读 AB 包！
-
+                AppLog.LogIO("CORE", "运行时模式 | AB包预加载");
                 _lua.OninitComplete += EnterLuaMain;
-
                 _lua.LoadLuaScript();
             }
-            
         }
 
-        // ======================== 接下来运行lua脚本 ==========================
-
-        // 在这里王权正式产生交接，整个游戏的所有的主流程全部移交Lua进行，lua会编写整个程序的所有业务流程
-        // 从这里开始就实现了Lua对于整个Unity客户端的全部操控
         private void EnterLuaMain()
         {
-            AppLog.LogSys("GameManager", "框架底层全部就绪，准备进入 Lua 主循环...");
-
+            AppLog.LogDone("CORE", "Lua虚拟机 | 初始化完成 | 进入主循环");
             _lua.LuaEnv.DoString("require('Main')");
-
             Action luaMainFunc = _lua.LuaEnv.Global.Get<Action>("Main");
-
             if(luaMainFunc != null)
             {
                 luaMainFunc.Invoke();
             } else
             {
-                AppLog.LogError("GameManager", "致命错误：在 Lua 中找不到 Main 函数！");
+                AppLog.LogError("CORE", "Lua主入口 | 未找到Main函数");
             }
         }
     }

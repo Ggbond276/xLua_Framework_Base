@@ -33,9 +33,8 @@ namespace Assets.Scripts.Framework.Manager
 
         public void Init()
         {
+            AppLog.LogDone("LUA", "Lua虚拟机 | 创建完成");
             LuaEnv = new LuaEnv();
-
-            // 这里告诉Lua 以后require找不到文件的时候 使用这个Loader拿文件
             LuaEnv.AddLoader(Loader);
         }
 
@@ -98,9 +97,7 @@ namespace Assets.Scripts.Framework.Manager
                     if(totalNeedLoad >= luaNames.Count)
                     {
                         luaNames.Clear();
-
-                        AppLog.LogSys("LuaManager", "[预加载] 所有 Lua 脚本预加载完成，虚拟机就绪！");
-
+                        AppLog.LogDone("LUA", "脚本预加载 | 完成 | 虚拟机就绪");
                         OninitComplete?.Invoke();
                     }
                 });
@@ -128,7 +125,7 @@ namespace Assets.Scripts.Framework.Manager
 
             if(!m_LuaScripts.TryGetValue(fileName, out luaScript))
             {
-                AppLog.LogError("LuaManager", "致命错误：Lua 脚本不存在！试图请求: " + fileName);
+                AppLog.LogError("LUA", $"Lua脚本不存在 | {fileName}");
             }
             return luaScript;
         }
@@ -146,8 +143,7 @@ namespace Assets.Scripts.Framework.Manager
 
                 AddLuaScript(PathUtil.GetUnityPath(fileName), file);
             }
-            AppLog.LogSys("LuaManager", $"[开发者模式] 已强读本地 {luaFiles.Length} 个 Lua 脚本完毕！");
-
+            AppLog.LogDone("LUA", $"开发者模式 | 加载{luaFiles.Length}个Lua脚本");
             OninitComplete?.Invoke();
         }
 #endif

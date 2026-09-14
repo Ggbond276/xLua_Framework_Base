@@ -139,22 +139,15 @@ namespace Assets.Scripts.Framework.Manager
 
 
 #if UNITY_EDITOR
-            // 这里会直接从BuildingResources进行数据读取
             if (UnityEditor.EditorPrefs.GetBool("IsEditorLoadMode", true))
             {
-                Debug.Log($"<color=yellow>[BuildingResources加载模式] 正在从本地目录直读: {assetName}</color>");
-
                 UnityEngine.Object obj = UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetName);
-
                 if (obj == null)
                 {
-                    Debug.LogError($"[BuildingResources加载模式] 找不到资源，请检查路径是否正确: {assetName}");
+                    AppLog.LogError("IO", $"资源加载失败 | {assetName}");
                 }
-
                 action?.Invoke(obj);
-
                 return;
-
             }
 #endif
             // 这里是正常流程从Streaming进行数据读取
