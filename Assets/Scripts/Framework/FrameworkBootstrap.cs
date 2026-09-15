@@ -39,21 +39,19 @@ namespace Assets.Scripts.Framework
         {
             AppLog.LogSys("BOOT", "框架启动 | 阶段1/4 | 构建层级结构");
 
-            // --------------------------------------------------------
+
             // 第一阶段:创建基础层级
-            // --------------------------------------------------------
             _frameworkRoot = GameApp.FrameworkRoot;
-            _systems = new GameObject("Systems");
+            _systems = new GameObject("Systems"); // 建 Systems + Runtime 这两个空节点
             _runtime = new GameObject("Runtime");
             _systems.transform.SetParent(_frameworkRoot.transform);
             _runtime.transform.SetParent(_frameworkRoot.transform);
 
             AppLog.LogIO("BOOT", "层级结构 | Root/Systems/Runtime | 创建完成");
 
-            // --------------------------------------------------------
+
             // 第二阶段:挂载所有 Manager 到 Systems
-            // --------------------------------------------------------
-            ResourcesManager resources = _systems.AddComponent<ResourcesManager>();
+            ResourcesManager resources = _systems.AddComponent<ResourcesManager>(); // 挂 5 个 Manager 到 Systems
             LuaManager lua = _systems.AddComponent<LuaManager>();
             UIManager ui = _systems.AddComponent<UIManager>();
             EntityManager entity = _systems.AddComponent<EntityManager>();
@@ -62,14 +60,10 @@ namespace Assets.Scripts.Framework
 
             AppLog.LogIO("BOOT", "管理器 | 注册完成 | Resources/Lua/UI/Entity/Scene");
 
-            // --------------------------------------------------------
             // 第三阶段:注入引用
-            // --------------------------------------------------------
             game.Inject(resources, lua, ui, entity, scene);
 
-            // --------------------------------------------------------
             // 第四阶段:按顺序初始化(注意依赖关系)
-            // --------------------------------------------------------
             lua.Init();
             resources.Init();
             entity.Init();

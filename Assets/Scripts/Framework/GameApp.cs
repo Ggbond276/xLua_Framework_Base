@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Assets.Scripts.Framework
 {
-    public static class GameApp
+    public class GameApp : MonoBehaviour
     {
 
         public static GameObject FrameworkRoot;
@@ -19,8 +19,11 @@ namespace Assets.Scripts.Framework
             set { FrameworkRoot = value; }
         }
 
-        // 核心黑魔法：在场景加载之前，强行执行此方法
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private void Start()
+        {
+            InitFramework();
+        }
+        
         public static void InitFramework()
         {
             AppLog.LogSys("APP", "框架初始化 | 劫持引擎生命周期 | 完成");

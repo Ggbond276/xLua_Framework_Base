@@ -103,7 +103,7 @@ namespace Assets.Scripts.Framework.Manager
             SceneManager.MoveGameObjectToScene(go, scene);
 
 
-            AppLog.LogError("MGR", $"SceneManager | 场景加载完成 | {sceneName}");
+            AppLog.LogDone("MGR", $"SceneManager | 场景加载完成 | {sceneName}");
 
             // 4.建立和对应Lua脚本之间的联系
             SceneLogic logic = go.AddComponent<SceneLogic>();

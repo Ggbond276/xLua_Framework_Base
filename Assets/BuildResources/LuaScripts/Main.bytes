@@ -1,10 +1,26 @@
--- 注意看！这里加上了 Assets. 必须和 C# 里的 namespace 一字不差！
 local AppLog = CS.Assets.Scripts.Framework.Util.AppLog
 local UIManager = CS.Assets.Scripts.Framework.Manager.UIManager
 local UILayer = CS.Assets.Scripts.Framework.Manager.UILayer
 local GameManager = CS.Assets.Scripts.Framework.Manager.GameManager
+
+
+local EntityGroup = {   -- 去掉键名,只剩值
+    "NPC",
+    "Monster",
+    "Character",
+}
+
+
 function Main()
     -- 下面这行不用动，依然是用 . 调用静态方法
-    AppLog.LogSys("LuaMain", "老铁，我把家庭住址写对后，终于跨界成功了！")
-    GameManager.UI:OpenUI("UIMain", "UIMain", UILayer.Back)
+    AppLog.LogSys("LuaMain", "Lua 入口启动")
+
+    GameManager.Entity:SetEntityGroup(EntityGroup)
+    AppLog.LogSys("LuaMain", "Entity分组注册完成: NPC, Character, Monster")
+
+    -- 完成场景加载
+    GameManager.Scene:ChangeScene("01_MainCity", "Scene_MainCity")
+
+    AppLog.LogSys("LuaMain", "场景切换指令已经发出");
+
 end

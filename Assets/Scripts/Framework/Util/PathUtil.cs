@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -81,7 +82,7 @@ namespace Assets.Scripts.Framework.Util
         /// <returns></returns>
         public static string GetUIPath(string name)
         {
-            return string.Format("Assets/BuildResources/UI/Prefab/{0}.prefab", name);
+            return string.Format("Assets/BuildResources/UI/Prefabs/{0}.prefab", name);
         }
 
         /// <summary>
@@ -122,6 +123,11 @@ namespace Assets.Scripts.Framework.Util
         public static string GetScenePath(string sceneName)
         {
             return string.Format("Assets/BuildResources/Scene/{0}.unity", sceneName);
+        }
+
+        internal static string GetModelPath(string entityName)
+        {
+            return string.Format("Assets/BuildResources/Model/Prefabs/{0}.prefab", entityName);
         }
     }
 }

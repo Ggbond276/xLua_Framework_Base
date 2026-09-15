@@ -74,3 +74,11 @@ crashlytics-build.properties
 # 忽略 StreamingAssets 目录下的所有自动生成内容 (如果该目录只用于输出打包产物)
 /[Aa]ssets/[Ss]treaming[Aa]ssets/*
 !/[Aa]ssets/[Ss]treaming[Aa]ssets/.gitkeep
+
+# [XLua 生成代码] 忽略 XLua 反射生成的所有包装代码(每次构建自动生成,无需提交)
+/[Aa]ssets/[Xx][Ll]ua/[Gg]en/
+/[Aa]ssets/[Xx][Ll]ua/[Gg]en/**/*.cs
+/[Aa]ssets/[Xx][Ll]ua/[Gg]en/**/*.meta
+/[Aa]ssets/[Xx][Ll]ua/[Gg]en.meta
+# 防止 XLua 自动生成的其它临时文件被误提交
+/[Aa]ssets/[Xx][Ll]ua/Tools~/

@@ -1,0 +1,48 @@
+local AppLog = CS.Assets.Scripts.Framework.Util.AppLog
+local Vector3 = CS.UnityEngine.Vector3
+local Rigidbody = CS.UnityEngine.Rigidbody
+
+local moveSpeed = 5.0
+local rb = nil
+
+
+function Awake()
+end
+
+function Start() 
+    rb = self.gameObject:GetComponent(typeof(CS.UnityEngine.Rigidbody))
+
+    if rb ~= nil then
+        AppLog.LogSys("PlayerInputController", "✅ Rigidbody 获取成功")
+    else
+        AppLog.LogError("PlayerInputController", "❌ Player 上没有 Rigidbody!")
+    end
+end
+
+
+
+function Update()
+    -- 等价于 C# 的 Update() 每帧调用
+    if rb == nil then return end
+    
+    -- 读取输入
+    local h = CS.UnityEngine.Input.GetAxis("Horizontal")
+    local v = CS.UnityEngine.Input.GetAxis("Vertical")
+    
+    -- 设置速度
+    rb.velocity = Vector3(h * moveSpeed, rb.velocity.y, v * moveSpeed)
+end
+
+
+function OnShow()
+    -- Entity 显示时调用 (EntityLogic 触发)
+    AppLog.LogSys("PlayerInputController", "OnShow 被调用")
+end
+function OnHide()
+    -- Entity 隐藏时调用 (EntityLogic 触发)
+    AppLog.LogSys("PlayerInputController", "OnHide 被调用")
+end
+function OnDestory()
+    -- 销毁时调用
+    AppLog.LogSys("PlayerInputController", "OnDestory 被调用")
+end

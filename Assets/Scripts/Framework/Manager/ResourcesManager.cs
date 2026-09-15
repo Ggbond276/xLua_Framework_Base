@@ -215,6 +215,12 @@ namespace Assets.Scripts.Framework.Manager
             LoadAssets(PathUtil.GetScenePath(sceneName), action);
         }
 
+        // º”‘ÿ‘§÷∆ÃÂ
+        public void LoadModel(string entityName, Action<UnityEngine.Object> action = null)
+        {
+            LoadAssets(PathUtil.GetModelPath(entityName), action);
+        }
+
     }
 
 }
