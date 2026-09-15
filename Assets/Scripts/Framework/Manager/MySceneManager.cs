@@ -90,7 +90,11 @@ namespace Assets.Scripts.Framework.Manager
         {
             // 1.防重复加载校验
             if (IsLoadedScene(sceneName))
+            {
+                AppLog.LogError("SceneManager", $"场景重复加载 | {sceneName}");
                 yield break;
+            }
+               
 
             // 2.异步加载并等待
             AsyncOperation async = SceneManager.LoadSceneAsync(sceneName, mode);

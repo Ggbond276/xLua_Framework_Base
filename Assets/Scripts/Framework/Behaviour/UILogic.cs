@@ -36,10 +36,7 @@ namespace Assets.Scripts.Framework.Behaviour
         private void Start()
         {
             base.m_LuaStart?.Invoke();
-            m_LuaOpen?.Invoke();
         }
-
-
 
         // ================================================================
         // 【下行】UIManager → UILogic → Lua

@@ -5,21 +5,21 @@ local GameManager = CS.Assets.Scripts.Framework.Manager.GameManager
 
 function OnEnter()
     AppLog.LogSys("Scene_MainCity", "场景MainCity进入")
+
+    --打开UIMain面板
+    AppLog.LogSys("Scene_MainCity", "打开UIMain面板")
+    GameManager.UI:OpenUI("UIMain", "UIMainLogic", 0)
+
+
+
     --进入之后需要去加载 Player 然后挂载一个PlayerInputCont
     -- 加载Player到内存中
         -- 用EntityManager中的ShowEntity方法创建Entity
         -- 只需要给Entity的名字 分组 Lua脚本名字
         -- 创建出来的Player就会挂载到对应的Group
-    local player = GameManager.Entity:ShowEntity("Player","Character","PlayerInputController")
-    
-    -- 这里根本执行不到 因为
-    if player ~= nil then
-        player.transform.position = CS.Vector3.zero
-    else
-        AppLog.LogError("Scene_MainCity", "加载Player失败")
-    end
+    GameManager.Entity:ShowEntity("Player","Character","PlayerInputControllerLogic")
 
-    
+
 end
 
 function OnQuit()

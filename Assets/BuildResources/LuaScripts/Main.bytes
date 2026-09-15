@@ -19,7 +19,7 @@ function Main()
     AppLog.LogSys("LuaMain", "Entity分组注册完成: NPC, Character, Monster")
 
     -- 完成场景加载
-    GameManager.Scene:ChangeScene("01_MainCity", "Scene_MainCity")
+    GameManager.Scene:ChangeScene("01_MainCity", "MainCityLogic")
 
     AppLog.LogSys("LuaMain", "场景切换指令已经发出");
 

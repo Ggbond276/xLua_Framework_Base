@@ -90,8 +90,7 @@ public class BuildTool : Editor
             build.assetNames = new string[] { relativePath };
 
             buildList.Add(build);
-            Debug.Log("正在打包资源: " + relativePath);
-
+            AppLog.LogIO("BuildTool", $"正在打包资源：{relativePath}");
 
             // =========================================================================
             // 【核心修复区】：开始查户口，建立依赖档案！

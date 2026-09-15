@@ -48,12 +48,20 @@ namespace Assets.Scripts.Framework.Manager
             get { return _entity; }
         }
 
+
         private static MySceneManager _scene;
         public static MySceneManager Scene
         {
             get { return _scene;  }
         }
 
+
+        private static SoundManager _sound;
+        public static SoundManager Sound
+        {
+            get { return _sound; }
+        }
+        
 
         // ============================================================
         // 游戏启动
@@ -73,13 +81,19 @@ namespace Assets.Scripts.Framework.Manager
         /// <param name="ui"></param>
         /// <param name="entity"></param>
         /// <param name="scene"></param>
-        public void Inject(ResourcesManager resources, LuaManager lua, UIManager ui, EntityManager entity, MySceneManager scene)
+        public void Inject(ResourcesManager resources, 
+            LuaManager lua, 
+            UIManager ui, 
+            EntityManager entity, 
+            MySceneManager scene,
+            SoundManager sound)
         {
             _resources = resources;
             _lua = lua;
             _ui = ui;
             _entity = entity;
             _scene = scene;
+            _sound = sound;
         }
 
         /// <summary>
@@ -106,7 +120,7 @@ namespace Assets.Scripts.Framework.Manager
             {
                 AppLog.LogIO("CORE", "运行时模式 | AB包预加载");
                 _lua.OninitComplete += EnterLuaMain;
-                _lua.LoadLuaScript();
+                _lua.LoadLuaScript(); // 加载所有Lua脚本进入内存
             }
         }
 

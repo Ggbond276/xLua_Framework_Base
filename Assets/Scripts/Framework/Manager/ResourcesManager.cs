@@ -14,7 +14,7 @@ namespace Assets.Scripts.Framework.Manager
     public class ResourcesManager : MonoBehaviour
     {
 
-        // ×Ô¼ºµ÷ÓÃ³õÊ¼»¯·½·¨
+        // è‡ªå·±è°ƒç”¨åˆå§‹åŒ–æ–¹æ³•
         public void Init()
         {
             bool isEditorMode = false;
@@ -34,34 +34,34 @@ namespace Assets.Scripts.Framework.Manager
             public List<string> Dependences;
         }
         /// <summary>
-        /// key£ºab°üµÄµØÖ·ĞÅÏ¢  value£º1.ab°üµÄÃû³Æ£¬2.ab°üµÄÒÀÀµ°üµÄÃû³ÆÁĞ±í
+        /// keyï¼šabåŒ…çš„åœ°å€ä¿¡æ¯  valueï¼š1.abåŒ…çš„åç§°ï¼Œ2.abåŒ…çš„ä¾èµ–åŒ…çš„åç§°åˆ—è¡¨
         /// </summary>
         private Dictionary<string, BundleInfo> m_BundleInfos = new Dictionary<string, BundleInfo>();
         /// <summary>
-        /// key£ºab°üµÄÃû³Æ value£ºab°üµÄÕæÕıµÄÄÚ´æ×ÊÔ´
+        /// keyï¼šabåŒ…çš„åç§° valueï¼šabåŒ…çš„çœŸæ­£çš„å†…å­˜èµ„æº
         /// </summary>
         private Dictionary<string, AssetBundle> m_LoadedBundle = new Dictionary<string, AssetBundle>();
 
         /// <summary>
-        /// Õâ¸ö·½·¨µÄ×÷ÓÃ¾ÍÊÇ½«FileListÕâ¸öÎÄ¼şÁĞ±íÖĞµÄĞÅÏ¢È«²¿±ä³É¶ÔÏó´æÈëÄÚ´æÖĞ
-        /// ½âÎö°æ±¾ÎÄ¼şµÄ·½·¨ Assets/BuildResources/UI/login.prefab|login.ab|common_ui.ab|shader.ab
-        /// ÎÄ¼şÂ·¾¶£º"Assets/BuildResources/UI/login.prefab"
-        /// Ö÷°üÃû£º"login.ab"
-        /// ÒÀÀµ°üÃû£º"common_ui.ab"
-        /// ÒÀÀµ°üÃû£º"shader.ab"
+        /// è¿™ä¸ªæ–¹æ³•çš„ä½œç”¨å°±æ˜¯å°†FileListè¿™ä¸ªæ–‡ä»¶åˆ—è¡¨ä¸­çš„ä¿¡æ¯å…¨éƒ¨å˜æˆå¯¹è±¡å­˜å…¥å†…å­˜ä¸­
+        /// è§£æç‰ˆæœ¬æ–‡ä»¶çš„æ–¹æ³• Assets/BuildResources/UI/login.prefab|login.ab|common_ui.ab|shader.ab
+        /// æ–‡ä»¶è·¯å¾„ï¼š"Assets/BuildResources/UI/login.prefab"
+        /// ä¸»åŒ…åï¼š"login.ab"
+        /// ä¾èµ–åŒ…åï¼š"common_ui.ab"
+        /// ä¾èµ–åŒ…åï¼š"shader.ab"
         /// </summary>
         private void ParseVersionFile()
         {
-            // 1. Æ´½Ó FileList.txt µÄ¾ø¶ÔÎïÀíÂ·¾¶
+            // 1. æ‹¼æ¥ FileList.txt çš„ç»å¯¹ç‰©ç†è·¯å¾„
             string url = Path.Combine(PathUtil.BundleResourcesPath, "FileList.txt");
-            // 2. µ÷ÓÃ C# µ×²ã IO ½Ó¿Ú£¬½«ÎÄ±¾Ò»¿ÚÆøÈ«²¿¶Á½øÄÚ´æ£¬°´ĞĞ±ä³ÉÊı×é
+            // 2. è°ƒç”¨ C# åº•å±‚ IO æ¥å£ï¼Œå°†æ–‡æœ¬ä¸€å£æ°”å…¨éƒ¨è¯»è¿›å†…å­˜ï¼ŒæŒ‰è¡Œå˜æˆæ•°ç»„
             string[] data = File.ReadAllLines(url);
-            // 3. ±éÀúÃ¿Ò»ĞĞ×Ö·û´®£¬¿ªÊ¼¡°ÇĞÑó´Ğ¡±
+            // 3. éå†æ¯ä¸€è¡Œå­—ç¬¦ä¸²ï¼Œå¼€å§‹â€œåˆ‡æ´‹è‘±â€
             for (int i = 0; i < data.Length; i++)
             {
-                // infos[] ÀïÃæ°üº¬µÄÊÇ²ğ½â³öÀ´µÄËùÓĞÎÄ¼şĞÅÏ¢
+                // infos[] é‡Œé¢åŒ…å«çš„æ˜¯æ‹†è§£å‡ºæ¥çš„æ‰€æœ‰æ–‡ä»¶ä¿¡æ¯
                 string[] infos = data[i].Split('|');
-                // ÕâÀï¾ÍÊÇ½«ĞÅÏ¢½øĞĞ×é×°´æ´¢
+                // è¿™é‡Œå°±æ˜¯å°†ä¿¡æ¯è¿›è¡Œç»„è£…å­˜å‚¨
                 BundleInfo bundleInfo = new BundleInfo();
                 bundleInfo.AssetsName = infos[0];
                 bundleInfo.bundleName = infos[1];
@@ -74,7 +74,7 @@ namespace Assets.Scripts.Framework.Manager
                 m_BundleInfos.Add(infos[0], bundleInfo);
 
 
-                // Èç¹ûÎÒÃÇÕÒµ½ÁËLuaµÄ½Å±¾ÎÄ¼ş¾ÍĞèÒªÅªÒ»·İ·Åµ½LuaManagerÖĞ
+                // å¦‚æœæˆ‘ä»¬æ‰¾åˆ°äº†Luaçš„è„šæœ¬æ–‡ä»¶å°±éœ€è¦å¼„ä¸€ä»½æ”¾åˆ°LuaManagerä¸­
                 if (infos[0].IndexOf("LuaScripts") > 0)
                 {
                     GameManager.Lua.AddLuaName(infos[0]);
@@ -84,44 +84,52 @@ namespace Assets.Scripts.Framework.Manager
         }
 
         /// <summary>
-        /// Òì²½¼ÓÔØBundleµÄ·½·¨
+        /// å¼‚æ­¥åŠ è½½Bundleçš„æ–¹æ³•
         /// </summary>
         /// <param name="assetName"></param>
         /// <param name="action"></param>
         /// <returns></returns>
         IEnumerator LoadBundleAsync(string assetName, Action<UnityEngine.Object> action = null)
         {
-            BundleInfo info = m_BundleInfos[assetName];
-            string bundleName = info.bundleName;
-            List<string> dependences = info.Dependences;
+            BundleInfo info = m_BundleInfos[assetName]; // åœ¨ä¿¡æ¯å­—å…¸é‡Œé¢æ‰¾åˆ°èµ„æºä¿¡æ¯
+            string bundleName = info.bundleName; // 1.èµ„æºçš„åå­—
+            List<string> dependences = info.Dependences; // 2.ä¾èµ–èµ„æºçš„åå­—åˆ—è¡¨
 
-            // ¼ÓÔØÒÀÀµ°ü
+            // åŠ è½½ä¾èµ–åŒ…
             for (int i = 0; i < dependences.Count; i++)
             {
-                if (m_LoadedBundle.ContainsKey(dependences[i]))
+                if (m_LoadedBundle.ContainsKey(dependences[i])) // å¦‚æœèµ„æºå·²ç»è®°è½½è¿‡å°±è·³è¿‡
                     continue;
 
-                // ´ÓÓ²ÅÌÖĞ½«×ÊÔ´Åªµ½Ó²ÅÌ²Ö¿âÖĞ ÓÉÓÚ´ÓÓ²ÅÌÀïÃæ¶Á×ÊÔ´ÊÇ·Ç³£ÏûºÄÊ±¼äµÄÊÂÇé ËùÒÔÒªÊ¹ÓÃĞ­³Ì¹ÒÆğ
+                // ä»ç¡¬ç›˜ä¸­å°†èµ„æºå¼„åˆ°ç¡¬ç›˜ä»“åº“ä¸­ ç”±äºä»ç¡¬ç›˜é‡Œé¢è¯»èµ„æºæ˜¯éå¸¸æ¶ˆè€—æ—¶é—´çš„äº‹æƒ… æ‰€ä»¥è¦ä½¿ç”¨åç¨‹æŒ‚èµ·
                 string depBundleName = dependences[i];
-                string depPath = Path.Combine(PathUtil.BundleResourcesPath, depBundleName);
-                AssetBundleCreateRequest request = AssetBundle.LoadFromFileAsync(depPath);
+                string depPath = Path.Combine(PathUtil.BundleResourcesPath, depBundleName); // 1.æ‹¼æ¥è·¯å¾„
+                AssetBundleCreateRequest request = AssetBundle.LoadFromFileAsync(depPath); // 2.å¼‚æ­¥åŠ è½½èµ„æº
                 yield return request;
 
                 m_LoadedBundle.Add(dependences[i], request.assetBundle);
             }
 
-            // ¼ÓÔØÖ÷×ÊÔ´°ü
-            if (!m_LoadedBundle.ContainsKey(bundleName))
+            // åŠ è½½ä¸»èµ„æºåŒ…
+            if (!m_LoadedBundle.ContainsKey(bundleName)) // å¦‚æœèµ„æºå·²ç»åŠ è½½è¿‡äº†å°±è·³è¿‡
             {
-                string path = Path.Combine(PathUtil.BundleResourcesPath, bundleName);
-                AssetBundleCreateRequest request = AssetBundle.LoadFromFileAsync(path);
+                string path = Path.Combine(PathUtil.BundleResourcesPath, bundleName); // 1.æ‹¼æ¥è·¯å¾„
+                AssetBundleCreateRequest request = AssetBundle.LoadFromFileAsync(path); // 2.å¼‚æ­¥åŠ è½½èµ„æº
                 yield return request;
 
                 m_LoadedBundle.Add(bundleName, request.assetBundle);
             }
 
-            // ´ÓÄÚ´æÀïÃæ¶ÁÈ¡×ÊÔ´
+
+            // ä»å†…å­˜é‡Œé¢è¯»å–èµ„æº
             AssetBundle mainBundle = m_LoadedBundle[bundleName];
+            // DEFENSE: åœºæ™¯èµ„æºä¸èƒ½ä½¿ç”¨ LoadAssetAsync
+            // åœºæ™¯åªåŠ è½½ ABï¼Œä¸åœ¨è¿™é‡Œæ¿€æ´»åœºæ™¯
+            if (assetName.Contains("/Scene/") && assetName.EndsWith(".unity"))
+            {
+                action?.Invoke(null);
+                yield break;
+            }
             AssetBundleRequest bundleRequest = mainBundle.LoadAssetAsync(assetName);
             yield return bundleRequest;
 
@@ -130,7 +138,7 @@ namespace Assets.Scripts.Framework.Manager
         }
 
         /// <summary>
-        /// ¼ÓÔØBundleµÄ·½·¨
+        /// åŠ è½½Bundleçš„æ–¹æ³•
         /// </summary>
         /// <param name="assetName"></param>
         /// <param name="action"></param>
@@ -144,31 +152,32 @@ namespace Assets.Scripts.Framework.Manager
                 UnityEngine.Object obj = UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetName);
                 if (obj == null)
                 {
-                    AppLog.LogError("IO", $"×ÊÔ´¼ÓÔØÊ§°Ü | {assetName}");
+                    AppLog.LogError("IO", $"èµ„æºåŠ è½½å¤±è´¥ | {assetName}");
                 }
                 action?.Invoke(obj);
                 return;
             }
 #endif
-            // ÕâÀïÊÇÕı³£Á÷³Ì´ÓStreaming½øĞĞÊı¾İ¶ÁÈ¡
+            // è¿™é‡Œæ˜¯æ­£å¸¸æµç¨‹ä»Streamingè¿›è¡Œæ•°æ®è¯»å–
             StartCoroutine(LoadBundleAsync(assetName, action));
         }
 
 
-        // IMPORTANT: LoadLuaÊÇÒì²½·½·¨
+        // IMPORTANT: LoadLuaæ˜¯å¼‚æ­¥æ–¹æ³•
         /// <summary>
-        /// ¼ÓÔØLua×ÊÔ´
+        /// åŠ è½½Luaèµ„æº
         /// </summary>
         /// <param name="luaName"></param>
         /// <param name="action"></param>
         public void LoadLua(string luaName, Action<UnityEngine.Object> action = null)
         {
-            LoadAssets(PathUtil.GetLuaPath(luaName), action);
+            // TODO: å¼„æ¸…æ¥šä¸ºä»€ä¹ˆè¿™é‡Œä¸GetPath
+            LoadAssets(luaName, action);
         }
 
-        // IMPORTANT: LoadUIÊÇÒì²½·½·¨
+        // IMPORTANT: LoadUIæ˜¯å¼‚æ­¥æ–¹æ³•
         /// <summary>
-        ///  ¼ÓÔØUIÔ¤ÖÆÌå×ÊÔ´
+        ///  åŠ è½½UIé¢„åˆ¶ä½“èµ„æº
         /// </summary>
         /// <param name="assetName"></param>
         /// <param name="action"></param>
@@ -177,9 +186,9 @@ namespace Assets.Scripts.Framework.Manager
             LoadAssets(PathUtil.GetUIPath(assetName), action);
         }
 
-        // IMPORTANT: LoadMusicÊÇÒì²½·½·¨
+        // IMPORTANT: LoadMusicæ˜¯å¼‚æ­¥æ–¹æ³•
         /// <summary>
-        /// ¼ÓÔØÒôÀÖ×ÊÔ´
+        /// åŠ è½½éŸ³ä¹èµ„æº
         /// </summary>
         /// <param name="assetName"></param>
         /// <param name="action"></param>
@@ -188,9 +197,9 @@ namespace Assets.Scripts.Framework.Manager
             LoadAssets(PathUtil.GetMusicPath(assetName), action);
         }
 
-        // IMPORTANT: LoadSoundÊÇÒì²½·½·¨
+        // IMPORTANT: LoadSoundæ˜¯å¼‚æ­¥æ–¹æ³•
         /// <summary>
-        /// ¼ÓÔØÒôĞ§×ÊÔ´
+        /// åŠ è½½éŸ³æ•ˆèµ„æº
         /// </summary>
         /// <param name="assetName"></param>
         /// <param name="action"></param>
@@ -199,9 +208,9 @@ namespace Assets.Scripts.Framework.Manager
             LoadAssets(PathUtil.GetSoundPath(assetName), action);
         }
 
-        // IMPORTANT: LoadEffectÊÇÒì²½·½·¨
+        // IMPORTANT: LoadEffectæ˜¯å¼‚æ­¥æ–¹æ³•
         /// <summary>
-        /// ¼ÓÔØÌØĞ§×ÊÔ´
+        /// åŠ è½½ç‰¹æ•ˆèµ„æº
         /// </summary>
         /// <param name="assetName"></param>
         /// <param name="action"></param>
@@ -215,7 +224,7 @@ namespace Assets.Scripts.Framework.Manager
             LoadAssets(PathUtil.GetScenePath(sceneName), action);
         }
 
-        // ¼ÓÔØÔ¤ÖÆÌå
+        // åŠ è½½é¢„åˆ¶ä½“
         public void LoadModel(string entityName, Action<UnityEngine.Object> action = null)
         {
             LoadAssets(PathUtil.GetModelPath(entityName), action);

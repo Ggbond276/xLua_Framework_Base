@@ -1,0 +1,98 @@
+local AppLog = CS.Assets.Scripts.Framework.Util.AppLog
+local UIManager = CS.Assets.Scripts.Framework.Manager.UIManager
+local UILayer = CS.Assets.Scripts.Framework.Manager.UILayer
+local GameManager = CS.Assets.Scripts.Framework.Manager.GameManager
+
+
+
+
+function OnOpen() 
+--AppLog
+AppLog.LogSys("UISound", "音量界面被打开")
+-- 1. 获取所有的 Button 组件 
+    -- ⚠️ 注意路径：你的按钮都挂在 img_Bg 下面，所以必须带上 "img_Bg/" 前缀！
+    local btn_PlayMusic = self.transform:Find("img_Bg/btn_PlayMusic"):GetComponent(typeof(CS.UnityEngine.UI.Button))
+    local btn_StopMusic = self.transform:Find("img_Bg/btn_StopMusic"):GetComponent(typeof(CS.UnityEngine.UI.Button))
+    local btn_PauseMusic = self.transform:Find("img_Bg/btn_PauseMusic"):GetComponent(typeof(CS.UnityEngine.UI.Button))
+    local btn_UnpauseMusic = self.transform:Find("img_Bg/btn_UnpauseMusic"):GetComponent(typeof(CS.UnityEngine.UI.Button))
+    local btn_Play_Sound = self.transform:Find("img_Bg/btn_Play_Sound"):GetComponent(typeof(CS.UnityEngine.UI.Button))
+
+    -- 2. 获取所有的 Slider 组件 (注意 typeof 里面变成了 Slider)
+    local Slider_MusicVolume = self.transform:Find("img_Bg/Slider_MusicVolume"):GetComponent(typeof(CS.UnityEngine.UI.Slider))
+    local Slider_SoundVolume = self.transform:Find("img_Bg/Slider_SoundVolume"):GetComponent(typeof(CS.UnityEngine.UI.Slider))
+
+    -- ==========================================
+    -- 2. 核心细节：同步滑竿的初始值！
+    -- ==========================================
+    -- 因为你 C# 里的 MusicVolume 属性是 private 的，
+    -- 我们在 Lua 里直接读 Unity 的 PlayerPrefs 小本本，让滑竿一打开就在正确的位置！
+    if Slider_MusicVolume ~= nil then
+        Slider_MusicVolume.value = CS.UnityEngine.PlayerPrefs.GetFloat("MusicVolume", 1.0)
+    end
+    if Slider_SoundVolume ~= nil then
+        Slider_SoundVolume.value = CS.UnityEngine.PlayerPrefs.GetFloat("SoundVolume", 1.0)
+    end
+
+
+    -- ==========================================
+    -- 3. 绑定音乐/音效控制事件
+    -- ==========================================
+    if btn_PlayMusic ~= nil then
+        btn_PlayMusic.onClick:AddListener(function()
+            AppLog.LogSys("UISound", "执行：播放背景音乐")
+            -- 注意：这里的 "bgm_main" 必须换成你实际打进 AB 包或放在 Resources 下的真实音乐文件名！
+            GameManager.Sound:PlayMusic("jtwayne-pianos-by-jtwayne-7-174717") 
+        end)
+    end
+
+    if btn_StopMusic ~= nil then
+        btn_StopMusic.onClick:AddListener(function()
+            AppLog.LogSys("UISound", "执行：停止音乐")
+            GameManager.Sound:StopMusic()
+        end)
+    end
+
+    if btn_PauseMusic ~= nil then
+        btn_PauseMusic.onClick:AddListener(function()
+            AppLog.LogSys("UISound", "执行：暂停音乐")
+            GameManager.Sound:PauseMusic()
+        end)
+    end
+
+    if btn_UnpauseMusic ~= nil then
+        btn_UnpauseMusic.onClick:AddListener(function()
+            AppLog.LogSys("UISound", "执行：恢复音乐")
+            GameManager.Sound:OnUnPauseMusic()
+        end)
+    end
+
+    if btn_Play_Sound ~= nil then
+        btn_Play_Sound.onClick:AddListener(function()
+            AppLog.LogSys("UISound", "执行：播放一次性音效")
+            -- 同样，"ui_click" 换成你真实的短音效文件名
+            GameManager.Sound:PlaySound("universfield-computer-mouse-click-352734")
+        end)
+    end
+
+
+    -- ==========================================
+    -- 4. 绑定滑动条的音量调节事件
+    -- ==========================================
+    if Slider_MusicVolume ~= nil then
+        Slider_MusicVolume.onValueChanged:AddListener(function(val)
+            -- 玩家每拖动一点点，立刻把数值传给 C# 的 SoundManager 保存
+            GameManager.Sound:SetMusicVolume(val)
+        end)
+    end
+    
+    if Slider_SoundVolume ~= nil then
+        Slider_SoundVolume.onValueChanged:AddListener(function(val)
+            GameManager.Sound:SetSoundVolume(val)
+        end)
+    end
+
+end
+
+function OnClose()
+
+end

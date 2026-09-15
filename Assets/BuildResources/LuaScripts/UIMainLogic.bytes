@@ -7,11 +7,26 @@ local UILayer = CS.Assets.Scripts.Framework.Manager.UILayer
 -- 老师的 LuaBehaviour 会自动把下面的 function 捕获进 C# 的 m_ScriptEnv 里！
 -- ========================================================
 
+
+
+
+
+
+
 function OnOpen()
     AppLog.LogSys("UIMain", "主界面加载成功！(沙盒绑定完美生效！)")
 
     -- MVP 手动查找模式
     local btnObj = CS.UnityEngine.GameObject.Find("btn_OpenShop")
+    --获取音量按钮组件
+    local btn_OpenSound = self.transform:Find("btn_OpenSound"):GetComponent(typeof(CS.UnityEngine.UI.Button))
+    
+     --给按钮绑定监听事件
+    btn_OpenSound.onClick:AddListener(
+    function()
+        AppLog.LogSys("UIMain", "音量按钮被点击，呼叫 GameManager 打开音量界面！")
+        GameManager.UI:OpenUI("UISound", "UISoundLogic", 1)
+    end)
     
     if btnObj ~= nil then
         local btnComp = btnObj:GetComponent(typeof(CS.UnityEngine.UI.Button))

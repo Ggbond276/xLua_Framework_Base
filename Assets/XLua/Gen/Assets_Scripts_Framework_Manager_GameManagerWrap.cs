@@ -33,7 +33,7 @@ namespace XLua.CSObjectWrap
 			Utils.EndObjectRegister(type, L, translator, null, null,
 			    null, null, null);
 
-		    Utils.BeginClassRegister(type, L, __CreateInstance, 1, 5, 0);
+		    Utils.BeginClassRegister(type, L, __CreateInstance, 1, 6, 0);
 			
 			
             
@@ -42,6 +42,7 @@ namespace XLua.CSObjectWrap
             Utils.RegisterFunc(L, Utils.CLS_GETTER_IDX, "UI", _g_get_UI);
             Utils.RegisterFunc(L, Utils.CLS_GETTER_IDX, "Entity", _g_get_Entity);
             Utils.RegisterFunc(L, Utils.CLS_GETTER_IDX, "Scene", _g_get_Scene);
+            Utils.RegisterFunc(L, Utils.CLS_GETTER_IDX, "Sound", _g_get_Sound);
             
 			
 			
@@ -96,8 +97,9 @@ namespace XLua.CSObjectWrap
                     Assets.Scripts.Framework.Manager.UIManager _ui = (Assets.Scripts.Framework.Manager.UIManager)translator.GetObject(L, 4, typeof(Assets.Scripts.Framework.Manager.UIManager));
                     Assets.Scripts.Framework.Manager.EntityManager _entity = (Assets.Scripts.Framework.Manager.EntityManager)translator.GetObject(L, 5, typeof(Assets.Scripts.Framework.Manager.EntityManager));
                     Assets.Scripts.Framework.Manager.MySceneManager _scene = (Assets.Scripts.Framework.Manager.MySceneManager)translator.GetObject(L, 6, typeof(Assets.Scripts.Framework.Manager.MySceneManager));
+                    Assets.Scripts.Framework.Manager.SoundManager _sound = (Assets.Scripts.Framework.Manager.SoundManager)translator.GetObject(L, 7, typeof(Assets.Scripts.Framework.Manager.SoundManager));
                     
-                    gen_to_be_invoked.Inject( _resources, _lua, _ui, _entity, _scene );
+                    gen_to_be_invoked.Inject( _resources, _lua, _ui, _entity, _scene, _sound );
                     
                     
                     
@@ -194,6 +196,18 @@ namespace XLua.CSObjectWrap
 		    try {
                 ObjectTranslator translator = ObjectTranslatorPool.Instance.Find(L);
 			    translator.Push(L, Assets.Scripts.Framework.Manager.GameManager.Scene);
+            } catch(System.Exception gen_e) {
+                return LuaAPI.luaL_error(L, "c# exception:" + gen_e);
+            }
+            return 1;
+        }
+        
+        [MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+        static int _g_get_Sound(RealStatePtr L)
+        {
+		    try {
+                ObjectTranslator translator = ObjectTranslatorPool.Instance.Find(L);
+			    translator.Push(L, Assets.Scripts.Framework.Manager.GameManager.Sound);
             } catch(System.Exception gen_e) {
                 return LuaAPI.luaL_error(L, "c# exception:" + gen_e);
             }

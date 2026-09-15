@@ -19,7 +19,7 @@ namespace Assets.Scripts.Framework.Manager
         public Action OninitComplete;
         // lua这边的容器需要先准备好 ResourcesManager才能准备给我们吐数据
         private List<string> luaNames = new List<string>();
-        // 真正混村内存中的Lua字节码的字典
+        // 真正缓存内存中的Lua字节码的字典
         private Dictionary<string, byte[]> m_LuaScripts = new Dictionary<string, byte[]>();
 
         // DEFENSE: 内存泄漏问题 - 静态变量持有了实例方法
@@ -83,7 +83,9 @@ namespace Assets.Scripts.Framework.Manager
         // 重点记住如何处理异步与内存的处理问题即可
         public void LoadLuaScript()
         {
-            int totalNeedLoad = luaNames.Count;
+            int totalNeedLoad = luaNames.Count;      // 总数
+            int loadedCount = 0;                    // 已加载计数
+            
             // 1.对大名单进行扫描
             foreach (string name in luaNames)
             {
@@ -94,7 +96,8 @@ namespace Assets.Scripts.Framework.Manager
                     // 加工数据 将TextAsset转化为纯字节数组 存入内存中
                     AddLuaScript(name, (obj as TextAsset).bytes);
                     
-                    if(totalNeedLoad >= luaNames.Count)
+                    loadedCount++;                  // 每完成一个递增计数
+                    if(loadedCount >= totalNeedLoad) // 等所有都加载完成才触发
                     {
                         luaNames.Clear();
                         AppLog.LogDone("LUA", "脚本预加载 | 完成 | 虚拟机就绪");
@@ -118,7 +121,7 @@ namespace Assets.Scripts.Framework.Manager
         public byte[] GetLuaScript(string luaName)
         {
             luaName = luaName.Replace(".", "/");
-
+            // TODO: 现在的资源加载路径是指向
             string fileName = PathUtil.GetLuaPath(luaName);
 
             byte[] luaScript = null;
@@ -131,7 +134,6 @@ namespace Assets.Scripts.Framework.Manager
         }
 
         // ================= 开发者工具模式 (旁路拦截) =================
-#if UNITY_EDITOR
         public void EditorLoadLuaScript()
         {
             string[] luaFiles = Directory.GetFiles(PathUtil.BuildResourcesLuaPath, "*.bytes", SearchOption.AllDirectories);
@@ -146,6 +148,6 @@ namespace Assets.Scripts.Framework.Manager
             AppLog.LogDone("LUA", $"开发者模式 | 加载{luaFiles.Length}个Lua脚本");
             OninitComplete?.Invoke();
         }
-#endif
+
     }
 }
