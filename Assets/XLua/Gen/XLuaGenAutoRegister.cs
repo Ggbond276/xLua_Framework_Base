@@ -166,18 +166,21 @@ namespace XLua.CSObjectWrap
             translator.DelayWrapLoader(typeof(Assets.Scripts.Framework.Manager.EntityManager), AssetsScriptsFrameworkManagerEntityManagerWrap.__Register);
         
         
+            translator.DelayWrapLoader(typeof(Assets.Scripts.Framework.Manager.EventManager), AssetsScriptsFrameworkManagerEventManagerWrap.__Register);
+        
+        
             translator.DelayWrapLoader(typeof(Assets.Scripts.Framework.Manager.GameManager), AssetsScriptsFrameworkManagerGameManagerWrap.__Register);
         
         
             translator.DelayWrapLoader(typeof(Assets.Scripts.Framework.Manager.SoundManager), AssetsScriptsFrameworkManagerSoundManagerWrap.__Register);
         
-        
-            translator.DelayWrapLoader(typeof(Assets.Scripts.Framework.Manager.UILayer), AssetsScriptsFrameworkManagerUILayerWrap.__Register);
-        
         }
         
         static void wrapInit1(LuaEnv luaenv, ObjectTranslator translator)
         {
+        
+            translator.DelayWrapLoader(typeof(Assets.Scripts.Framework.Manager.UILayer), AssetsScriptsFrameworkManagerUILayerWrap.__Register);
+        
         
             translator.DelayWrapLoader(typeof(Assets.Scripts.Framework.Manager.UIManager), AssetsScriptsFrameworkManagerUIManagerWrap.__Register);
         

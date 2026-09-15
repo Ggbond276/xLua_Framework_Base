@@ -86,7 +86,8 @@ namespace Assets.Scripts.Framework.Manager
             UIManager ui, 
             EntityManager entity, 
             MySceneManager scene,
-            SoundManager sound)
+            SoundManager sound,
+            EventManager myEvent)
         {
             _resources = resources;
             _lua = lua;

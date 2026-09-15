@@ -67,6 +67,7 @@
 		<type fullname="XLuaTest.FooExtension" preserve="all"/>
 		<type fullname="Assets.Scripts.Framework.Util.AppLog" preserve="all"/>
 		<type fullname="Assets.Scripts.Framework.Manager.EntityManager" preserve="all"/>
+		<type fullname="Assets.Scripts.Framework.Manager.EventManager" preserve="all"/>
 		<type fullname="Assets.Scripts.Framework.Manager.GameManager" preserve="all"/>
 		<type fullname="Assets.Scripts.Framework.Manager.SoundManager" preserve="all"/>
 		<type fullname="Assets.Scripts.Framework.Manager.UILayer" preserve="all"/>

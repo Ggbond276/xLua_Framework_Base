@@ -98,8 +98,9 @@ namespace XLua.CSObjectWrap
                     Assets.Scripts.Framework.Manager.EntityManager _entity = (Assets.Scripts.Framework.Manager.EntityManager)translator.GetObject(L, 5, typeof(Assets.Scripts.Framework.Manager.EntityManager));
                     Assets.Scripts.Framework.Manager.MySceneManager _scene = (Assets.Scripts.Framework.Manager.MySceneManager)translator.GetObject(L, 6, typeof(Assets.Scripts.Framework.Manager.MySceneManager));
                     Assets.Scripts.Framework.Manager.SoundManager _sound = (Assets.Scripts.Framework.Manager.SoundManager)translator.GetObject(L, 7, typeof(Assets.Scripts.Framework.Manager.SoundManager));
+                    Assets.Scripts.Framework.Manager.EventManager _myEvent = (Assets.Scripts.Framework.Manager.EventManager)translator.GetObject(L, 8, typeof(Assets.Scripts.Framework.Manager.EventManager));
                     
-                    gen_to_be_invoked.Inject( _resources, _lua, _ui, _entity, _scene, _sound );
+                    gen_to_be_invoked.Inject( _resources, _lua, _ui, _entity, _scene, _sound, _myEvent );
                     
                     
                     
