@@ -57,14 +57,15 @@ namespace Assets.Scripts.Framework
             EntityManager entity = _systems.AddComponent<EntityManager>();
             MySceneManager scene = _systems.AddComponent<MySceneManager>();
             SoundManager sound = _systems.AddComponent<SoundManager>();
-            EventManager myEvent = _frameworkRoot.AddComponent<EventManager>();
+            EventManager myEvent = _systems.AddComponent<EventManager>();
+            PoolManager pool = _systems.AddComponent<PoolManager>();
             GameManager game = _frameworkRoot.AddComponent<GameManager>();
         
 
             AppLog.LogIO("BOOT", "管理器 | 注册完成 | Resources/Lua/UI/Entity/Scene");
 
             // 第三阶段:注入引用
-            game.Inject(resources, lua, ui, entity, scene, sound, myEvent);
+            game.Inject(resources, lua, ui, entity, scene, sound, myEvent, pool);
 
             // 第四阶段:按顺序初始化(注意依赖关系)
             lua.Init();
@@ -74,6 +75,7 @@ namespace Assets.Scripts.Framework
             scene.Init();
             sound.Init();
             myEvent.Init();
+            pool.Init();
 
             AppLog.LogDone("BOOT", "框架启动 | 阶段4/4 | 所有管理器初始化完成");
             game.OnFrameworkReady();

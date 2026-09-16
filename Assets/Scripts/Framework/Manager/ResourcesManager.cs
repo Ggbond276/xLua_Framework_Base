@@ -33,6 +33,12 @@ namespace Assets.Scripts.Framework.Manager
             public string bundleName;
             public List<string> Dependences;
         }
+
+        internal void UnLoadBundle(string name)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// key：ab包的地址信息  value：1.ab包的名称，2.ab包的依赖包的名称列表
         /// </summary>

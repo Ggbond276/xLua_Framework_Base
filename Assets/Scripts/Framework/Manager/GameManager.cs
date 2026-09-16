@@ -61,7 +61,18 @@ namespace Assets.Scripts.Framework.Manager
         {
             get { return _sound; }
         }
-        
+
+        private static EventManager _event;
+        public static EventManager Event
+        {
+            get { return _event; }
+        }
+
+        private static PoolManager _pool;
+        public static PoolManager Pool
+        {
+            get { return _pool; }
+        }
 
         // ============================================================
         // 游戏启动
@@ -87,7 +98,8 @@ namespace Assets.Scripts.Framework.Manager
             EntityManager entity, 
             MySceneManager scene,
             SoundManager sound,
-            EventManager myEvent)
+            EventManager myEvent,
+            PoolManager pool)
         {
             _resources = resources;
             _lua = lua;
@@ -95,6 +107,8 @@ namespace Assets.Scripts.Framework.Manager
             _entity = entity;
             _scene = scene;
             _sound = sound;
+            _event = myEvent;
+            _pool = pool;
         }
 
         /// <summary>
