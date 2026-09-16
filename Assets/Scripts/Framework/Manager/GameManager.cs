@@ -74,6 +74,12 @@ namespace Assets.Scripts.Framework.Manager
             get { return _pool; }
         }
 
+        private static NetManager _net;
+        public static NetManager Net
+        {
+            get { return _net; }
+        }
+
         // ============================================================
         // 游戏启动
         // ============================================================
@@ -99,7 +105,8 @@ namespace Assets.Scripts.Framework.Manager
             MySceneManager scene,
             SoundManager sound,
             EventManager myEvent,
-            PoolManager pool)
+            PoolManager pool,
+            NetManager net)
         {
             _resources = resources;
             _lua = lua;

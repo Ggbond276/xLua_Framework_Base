@@ -35,6 +35,7 @@ namespace Assets.Scripts.Framework.Manager
         {
             AppLog.LogDone("LUA", "Lua虚拟机 | 创建完成");
             LuaEnv = new LuaEnv();
+            LuaEnv.AddBuildin("rapidjson", XLua.LuaDLL.Lua.LoadRapidJson);
             LuaEnv.AddLoader(Loader);
         }
 

@@ -13,6 +13,7 @@ local EntityGroup = {   -- 去掉键名,只剩值
 
 function Main()
     -- 下面这行不用动，依然是用 . 调用静态方法
+    print("========== Main 被调用了 ==========")
     AppLog.LogSys("LuaMain", "Lua 入口启动")
 
     GameManager.Entity:SetEntityGroup(EntityGroup)
@@ -23,4 +24,10 @@ function Main()
 
     AppLog.LogSys("LuaMain", "场景切换指令已经发出");
 
+    local rapidjson = require('rapidjson')
+    local t = rapidjson.decode('{"a":123}')
+    print(t.a)
+    t.a = 456
+    local s = rapidjson.encode(t)
+    print('json', s)
 end
