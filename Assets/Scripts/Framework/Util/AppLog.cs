@@ -18,6 +18,7 @@ namespace Assets.Scripts.Framework.Util
         private const string COLOR_NET = "#FF00FF";    // 品红 (网络)
         private const string COLOR_ERR = "#FF4444";    // 红色 (错误)
         private const string COLOR_WRN = "#FFA500";    // 橙色 (警告)
+        private const string COLOR_HLT = "#FF1493";    // 深粉色 (高亮)
 
         // 级别标签
         private const string LV_INIT = "INIT";
@@ -76,6 +77,14 @@ namespace Assets.Scripts.Framework.Util
         public static void LogError(string module, string msg)
         {
             Debug.LogError($"<color={COLOR_ERR}>[{LV_ERR}] [{module}] {msg}</color>");
+        }
+
+        /// <summary>
+        /// 高亮醒目日志（用于测试对象池等关键流程）
+        /// </summary>
+        public static void LogHighlight(string module, string msg)
+        {
+            Debug.Log($"<color={COLOR_HLT}>[★★★] [{module}] {msg}</color>");
         }
     }
 }

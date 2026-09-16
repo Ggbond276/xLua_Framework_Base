@@ -188,6 +188,7 @@ namespace Assets.Scripts.Framework.Manager
 
             if (m_UIDict.ContainsKey(uiName)) // 如果UI是打开状态的不可以重复打开
             {
+                AppLog.LogWarning("MGR", $"UIManager | OpenUI | UI已打开 | {uiName}");
                 return;
             }
             
@@ -195,6 +196,7 @@ namespace Assets.Scripts.Framework.Manager
 
             if(uiPool.isInPool(uiName)) // 如果对象在对象池中
             {
+                AppLog.LogHighlight("UI", $"★★★ 复用 [UI:{uiName}] 从对象池取出 ★★★");
                 GameObject obj = uiPool.Spwan(uiName) as GameObject; // 从对象池中将对象拿出来
                 obj.SetActive(true); // 设置为可见
                 obj.transform.SetParent(GetLayer(layer), false); // 挂载到对应的层级下
@@ -206,8 +208,13 @@ namespace Assets.Scripts.Framework.Manager
             // ==========================================================
 
             // 加载资源创建新的对象
+            AppLog.LogHighlight("UI", $"★★★ 新建 [UI:{uiName}] 首次加载 ★★★");
             GameManager.Resources.LoadUI(uiName, (UnityEngine.Object obj) => {
-                if (obj == null) return;
+                if (obj == null)
+                {
+                    AppLog.LogError("UI", $"加载失败 [UI:{uiName}]");
+                    return;
+                }
                 GameObject go = Instantiate(obj) as GameObject; // 实例化新的对象
                 go.name = uiName;
                 go.transform.SetParent(GetLayer(layer), false); // 挂载到对应层级
@@ -226,6 +233,7 @@ namespace Assets.Scripts.Framework.Manager
         {
             if (m_UIDict.TryGetValue(uiName, out GameObject ui)) // 如果确实是开启状态的
             {
+                AppLog.LogHighlight("UI", $"★★★ 关闭 [UI:{uiName}] 放入对象池 ★★★");
                 m_UIDict.Remove(uiName); // 关闭开启状态
                 ui.SetActive(false);
                 uiPool.UnSpwan(uiName, ui);

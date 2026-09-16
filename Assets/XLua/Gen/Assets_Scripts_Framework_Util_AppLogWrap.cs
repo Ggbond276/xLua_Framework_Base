@@ -31,7 +31,7 @@ namespace XLua.CSObjectWrap
 			Utils.EndObjectRegister(type, L, translator, null, null,
 			    null, null, null);
 
-		    Utils.BeginClassRegister(type, L, __CreateInstance, 8, 0, 0);
+		    Utils.BeginClassRegister(type, L, __CreateInstance, 9, 0, 0);
 			Utils.RegisterFunc(L, Utils.CLS_IDX, "LogSys", _m_LogSys_xlua_st_);
             Utils.RegisterFunc(L, Utils.CLS_IDX, "LogService", _m_LogService_xlua_st_);
             Utils.RegisterFunc(L, Utils.CLS_IDX, "LogIO", _m_LogIO_xlua_st_);
@@ -39,6 +39,7 @@ namespace XLua.CSObjectWrap
             Utils.RegisterFunc(L, Utils.CLS_IDX, "LogDone", _m_LogDone_xlua_st_);
             Utils.RegisterFunc(L, Utils.CLS_IDX, "LogWarning", _m_LogWarning_xlua_st_);
             Utils.RegisterFunc(L, Utils.CLS_IDX, "LogError", _m_LogError_xlua_st_);
+            Utils.RegisterFunc(L, Utils.CLS_IDX, "LogHighlight", _m_LogHighlight_xlua_st_);
             
 			
             
@@ -224,6 +225,31 @@ namespace XLua.CSObjectWrap
                     string _msg = LuaAPI.lua_tostring(L, 2);
                     
                     Assets.Scripts.Framework.Util.AppLog.LogError( _module, _msg );
+                    
+                    
+                    
+                    return 0;
+                }
+                
+            } catch(System.Exception gen_e) {
+                return LuaAPI.luaL_error(L, "c# exception:" + gen_e);
+            }
+            
+        }
+        
+        [MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+        static int _m_LogHighlight_xlua_st_(RealStatePtr L)
+        {
+		    try {
+            
+            
+            
+                
+                {
+                    string _module = LuaAPI.lua_tostring(L, 1);
+                    string _msg = LuaAPI.lua_tostring(L, 2);
+                    
+                    Assets.Scripts.Framework.Util.AppLog.LogHighlight( _module, _msg );
                     
                     
                     

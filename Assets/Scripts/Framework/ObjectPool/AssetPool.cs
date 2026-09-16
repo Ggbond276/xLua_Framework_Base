@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts.Framework.Manager;
+using Assets.Scripts.Framework.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,8 +39,9 @@ namespace Assets.Scripts.Framework.ObjectPool
             {
                 if(DateTime.Now.Ticks - item.LastUseTime.Ticks >= m_ReleaseTime * 10000000) // 如果对象池很久都没有被使用过了
                 {
-                    // Log
-                    GameManager.Resources.UnLoadBundle(item.Name);
+                    // 高亮日志：AssetBundle 资源被卸载
+                    AppLog.LogHighlight("POOL", $"★★★ 卸载 [AssetBundle:{item.Name}] 超过 {m_ReleaseTime} 秒未使用 ★★★");
+                    GameManager.Resources.UnLoadAsset(item.Name);
                     m_Objects.Remove(item);
                     Release();
                     return;

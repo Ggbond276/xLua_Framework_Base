@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Assets.Scripts.Framework.Util;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -24,6 +25,7 @@ namespace Assets.Scripts.Framework.ObjectPool
 
             GameObject go = obj as GameObject; // 强转取出的对象类型
             go.SetActive(true); // 显示出来
+            AppLog.LogHighlight("POOL", $"★★★ GameObjectPool.Spawn [Name:{name}] ★★★");
             return go; // 返回对象
         }
 
@@ -50,7 +52,8 @@ namespace Assets.Scripts.Framework.ObjectPool
             {
                 if(System.DateTime.Now.Ticks - item.LastUseTime.Ticks >= m_ReleaseTime * 10000000)
                 {
-                    // Log一下
+                    // 高亮日志：对象被销毁
+                    AppLog.LogHighlight("POOL", $"★★★ 销毁 [GameObject:{item.Name}] 超过 {m_ReleaseTime} 秒未使用 ★★★");
                     Destroy(item.Object);
                     m_Objects.Remove(item);
                     Release();

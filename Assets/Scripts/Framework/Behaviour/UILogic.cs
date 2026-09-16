@@ -49,6 +49,7 @@ namespace Assets.Scripts.Framework.Behaviour
         public void OnOpen()
         {
             m_LuaOpen?.Invoke();
+            
         }
 
         /// <summary>

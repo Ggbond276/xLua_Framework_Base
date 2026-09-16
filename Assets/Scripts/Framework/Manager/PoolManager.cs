@@ -30,9 +30,12 @@ namespace Assets.Scripts.Framework.Manager
             pool.transform.SetParent(this.transform, false); // 现在就有一个Pool节点挂载在System上
             m_PoolRoot = pool.transform;
 
-            CreateGameObjectPool("UIPool", 10); // 创建一个UI 10秒没有使用就销毁
-            CreateGameObjectPool("EntityPool", 5); // 创建Entity对象池 5秒没有使用就销毁
-            
+            // 创建 GameObject 对象池（管理运行时实例）
+            CreateGameObjectPool("UIPool", 10); // UI 10秒没有使用就销毁
+            CreateGameObjectPool("EntityPool", 5); // 实体 5秒没有使用就销毁
+
+            // 创建 Asset 对象池（管理 AssetBundle 资源）
+            CreateAssetPool("BundlePool", 30); // Bundle 资源 30秒没有使用就卸载
         }
 
 
@@ -84,8 +87,14 @@ namespace Assets.Scripts.Framework.Manager
         {
             if(m_Pools.TryGetValue(poolName, out PoolBase pool))
             {
-                return pool.Spwan(assetName);
+                Object obj = pool.Spwan(assetName);
+                if (obj != null)
+                {
+                    AppLog.LogHighlight("POOL", $"★★★ 取 [Pool:{poolName}] [Asset:{assetName}] ★★★");
+                }
+                return obj;
             }
+            AppLog.LogWarning("POOL", $"Spawn | 对象池不存在 | {poolName}");
             return null;
         }
 
@@ -99,7 +108,12 @@ namespace Assets.Scripts.Framework.Manager
         {
             if(m_Pools.TryGetValue(poolName, out PoolBase pool))
             {
+                AppLog.LogHighlight("POOL", $"★★★ 归 [Pool:{poolName}] [Asset:{assetName}] ★★★");
                 pool.UnSpwan(assetName, asset);
+            }
+            else
+            {
+                AppLog.LogWarning("POOL", $"UnSpawn | 对象池不存在 | {poolName}");
             }
         }
 

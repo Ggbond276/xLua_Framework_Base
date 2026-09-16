@@ -3,10 +3,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
-
 
 namespace Assets.Scripts.Framework.Manager
 {
@@ -14,7 +12,10 @@ namespace Assets.Scripts.Framework.Manager
     public class ResourcesManager : MonoBehaviour
     {
 
-        // 自己调用初始化方法
+        // ============================================================
+        // 初始化
+        // ============================================================
+
         public void Init()
         {
             bool isEditorMode = false;
@@ -27,135 +28,172 @@ namespace Assets.Scripts.Framework.Manager
             }
         }
 
+        // ============================================================
+        // 内部数据结构
+        // ============================================================
+
+        /// <summary>
+        /// Bundle 信息（从 FileList.txt 解析出来）
+        /// 记录每个资源对应的 AssetBundle 名称和依赖关系
+        /// </summary>
         internal class BundleInfo
         {
-            public string AssetsName;
-            public string bundleName;
-            public List<string> Dependences;
+            /// <summary>资源名称（用于查询）</summary>
+            public string AssetName;
+            /// <summary>所属 AssetBundle 名称</summary>
+            public string BundleName;
+            /// <summary>依赖的 AssetBundle 名称列表</summary>
+            public List<string> Dependencies;
         }
 
-        internal void UnLoadBundle(string name)
+        /// <summary>
+        /// 已加载的 AssetBundle 记录
+        /// 记录内存中的 AssetBundle 及其引用计数
+        /// </summary>
+        internal class LoadedAssetBundle
         {
-            throw new NotImplementedException();
+            /// <summary>内存中的 AssetBundle 资源</summary>
+            public AssetBundle Bundle;
+            /// <summary>引用计数器，有人引用就+1，释放就-1</summary>
+            public int ReferenceCount;
+
+            public LoadedAssetBundle(AssetBundle bundle)
+            {
+                Bundle = bundle;
+                ReferenceCount = 1;
+            }
         }
 
-        /// <summary>
-        /// key：ab包的地址信息  value：1.ab包的名称，2.ab包的依赖包的名称列表
-        /// </summary>
-        private Dictionary<string, BundleInfo> m_BundleInfos = new Dictionary<string, BundleInfo>();
-        /// <summary>
-        /// key：ab包的名称 value：ab包的真正的内存资源（现在LoadedBundle 应该作为一个状态容器）
-        /// </summary>
-        private Dictionary<string, AssetBundle> m_LoadedBundle = new Dictionary<string, AssetBundle>();
+        // ============================================================
+        // 私有成员
+        // ============================================================
 
         /// <summary>
-        /// 这个方法的作用就是将FileList这个文件列表中的信息全部变成对象存入内存中
-        /// 解析版本文件的方法 Assets/BuildResources/UI/login.prefab|login.ab|common_ui.ab|shader.ab
-        /// 文件路径："Assets/BuildResources/UI/login.prefab"
-        /// 主包名："login.ab"
-        /// 依赖包名："common_ui.ab"
-        /// 依赖包名："shader.ab"
+        /// key：资源名称（查询用）  value：Bundle 信息
+        /// </summary>
+        private Dictionary<string, BundleInfo> m_BundleInfoMap = new Dictionary<string, BundleInfo>();
+
+        /// <summary>
+        /// key：AssetBundle 名称  value：已加载的 AssetBundle 记录
+        /// 只要引用计数 > 0，Bundle 就会在这里
+        /// 引用为 0 时会被 AssetPool 监控，超时后从内存卸载
+        /// </summary>
+        private Dictionary<string, LoadedAssetBundle> m_LoadedAssetBundles = new Dictionary<string, LoadedAssetBundle>();
+
+        // ============================================================
+        // 生命周期
+        // ============================================================
+
+        /// <summary>
+        /// 解析版本文件
+        /// 格式：资源路径|主包名|依赖包1|依赖包2|...
+        /// 示例：Assets/BuildResources/UI/login.prefab|login.ab|common_ui.ab|shader.ab
         /// </summary>
         private void ParseVersionFile()
         {
-            // 1. 拼接 FileList.txt 的绝对物理路径
             string url = Path.Combine(PathUtil.BundleResourcesPath, "FileList.txt");
-            // 2. 调用 C# 底层 IO 接口，将文本一口气全部读进内存，按行变成数组
-            string[] data = File.ReadAllLines(url);
-            // 3. 遍历每一行字符串，开始“切洋葱”
-            for (int i = 0; i < data.Length; i++)
+            string[] lines = File.ReadAllLines(url);
+
+            for (int i = 0; i < lines.Length; i++)
             {
-                // infos[] 里面包含的是拆解出来的所有文件信息
-                string[] infos = data[i].Split('|');
-                // 这里就是将信息进行组装存储
-                BundleInfo bundleInfo = new BundleInfo();
-                bundleInfo.AssetsName = infos[0];
-                bundleInfo.bundleName = infos[1];
-                bundleInfo.Dependences = new List<string>();
-                for (int j = 2; j < infos.Length; j++)
+                string[] parts = lines[i].Split('|');
+
+                BundleInfo info = new BundleInfo
                 {
-                    bundleInfo.Dependences.Add(infos[j]);
+                    AssetName = parts[0],
+                    BundleName = parts[1],
+                    Dependencies = new List<string>()
+                };
+
+                for (int j = 2; j < parts.Length; j++)
+                {
+                    info.Dependencies.Add(parts[j]);
                 }
 
-                m_BundleInfos.Add(infos[0], bundleInfo);
+                m_BundleInfoMap.Add(parts[0], info);
 
-
-                // 如果我们找到了Lua的脚本文件就需要弄一份放到LuaManager中
-                if (infos[0].IndexOf("LuaScripts") > 0)
+                // Lua 脚本单独注册到 LuaManager
+                if (parts[0].IndexOf("LuaScripts") > 0)
                 {
-                    GameManager.Lua.AddLuaName(infos[0]);
+                    GameManager.Lua.AddLuaName(parts[0]);
                 }
             }
-
         }
 
+        // ============================================================
+        // 核心加载流程
+        // ============================================================
+
         /// <summary>
-        /// 异步加载Bundle的方法
+        /// 异步加载 AssetBundle 并取出资源
+        /// 内部流程：
+        /// 1. 加载依赖包
+        /// 2. 加载主资源包
+        /// 3. 从主包中取出具体资源
         /// </summary>
-        /// <param name="assetName"></param>
-        /// <param name="action"></param>
-        /// <returns></returns>
-        IEnumerator LoadBundleAsync(string assetName, Action<UnityEngine.Object> action = null)
+        private IEnumerator LoadAssetAsync(string assetName, Action<UnityEngine.Object> action)
         {
-            BundleInfo info = m_BundleInfos[assetName]; // 在信息字典里面找到资源信息
-            string bundleName = info.bundleName; // 1.资源的名字
-            List<string> dependences = info.Dependences; // 2.依赖资源的名字列表
+            BundleInfo info = m_BundleInfoMap[assetName];
+            string bundleName = info.BundleName;
+            List<string> dependencies = info.Dependencies;
 
-            // 加载依赖包
-            for (int i = 0; i < dependences.Count; i++)
+            // ---- Step 1: 加载依赖包 ----
+            for (int i = 0; i < dependencies.Count; i++)
             {
-                if (m_LoadedBundle.ContainsKey(dependences[i])) // 如果资源已经记载过就跳过
-                    continue;
+                string depName = dependencies[i];
+                if (m_LoadedAssetBundles.ContainsKey(depName))
+                {
+                    continue; // 已加载，跳过
+                }
 
-                // 从硬盘中将资源弄到硬盘仓库中 由于从硬盘里面读资源是非常消耗时间的事情 所以要使用协程挂起
-                string depBundleName = dependences[i];
-                string depPath = Path.Combine(PathUtil.BundleResourcesPath, depBundleName); // 1.拼接路径
-                AssetBundleCreateRequest request = AssetBundle.LoadFromFileAsync(depPath); // 2.异步加载资源
+                string depPath = Path.Combine(PathUtil.BundleResourcesPath, depName);
+                AssetBundleCreateRequest request = AssetBundle.LoadFromFileAsync(depPath);
                 yield return request;
 
-                m_LoadedBundle.Add(dependences[i], request.assetBundle);
+                m_LoadedAssetBundles.Add(depName, new LoadedAssetBundle(request.assetBundle));
             }
 
-            // 加载主资源包
-            if (!m_LoadedBundle.ContainsKey(bundleName)) // 如果资源已经加载过了就跳过
+            // ---- Step 2: 加载主资源包 ----
+            if (!m_LoadedAssetBundles.ContainsKey(bundleName))
             {
-                string path = Path.Combine(PathUtil.BundleResourcesPath, bundleName); // 1.拼接路径
-                AssetBundleCreateRequest request = AssetBundle.LoadFromFileAsync(path); // 2.异步加载资源
+                string path = Path.Combine(PathUtil.BundleResourcesPath, bundleName);
+                AssetBundleCreateRequest request = AssetBundle.LoadFromFileAsync(path);
                 yield return request;
 
-                m_LoadedBundle.Add(bundleName, request.assetBundle);
+                m_LoadedAssetBundles.Add(bundleName, new LoadedAssetBundle(request.assetBundle));
             }
 
+            // ---- Step 3: 从包中取出资源 ----
+            AssetBundle mainBundle = m_LoadedAssetBundles[bundleName].Bundle;
 
-            // 从内存里面读取资源
-            AssetBundle mainBundle = m_LoadedBundle[bundleName];
-            // DEFENSE: 场景资源不能使用 LoadAssetAsync
-            // 场景只加载 AB，不在这里激活场景
+            // 场景资源特殊处理：只加载 AB，不激活场景
             if (assetName.Contains("/Scene/") && assetName.EndsWith(".unity"))
             {
                 action?.Invoke(null);
                 yield break;
             }
+
             AssetBundleRequest bundleRequest = mainBundle.LoadAssetAsync(assetName);
             yield return bundleRequest;
 
+            // 高亮日志：资源加载完成
+            AppLog.LogHighlight("IO", $"★★★ 加载完成 [Asset:{assetName}] ★★★");
             action?.Invoke(bundleRequest.asset);
-
         }
 
+        // ============================================================
+        // 对外接口
+        // ============================================================
+
         /// <summary>
-        /// 加载Bundle的方法
+        /// 加载任意资源（编辑器模式走 AssetDatabase，发布模式走 AssetBundle）
         /// </summary>
-        /// <param name="assetName"></param>
-        /// <param name="action"></param>
         public void LoadAssets(string assetName, Action<UnityEngine.Object> action = null)
         {
-
-
 #if UNITY_EDITOR
-            if (UnityEditor.EditorPrefs.GetBool("IsEditorLoadMode", true))
+            if (EditorPrefs.GetBool("IsEditorLoadMode", true))
             {
-                UnityEngine.Object obj = UnityEditor.AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetName);
+                UnityEngine.Object obj = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(assetName);
                 if (obj == null)
                 {
                     AppLog.LogError("IO", $"资源加载失败 | {assetName}");
@@ -164,76 +202,191 @@ namespace Assets.Scripts.Framework.Manager
                 return;
             }
 #endif
-            // 这里是正常流程从Streaming进行数据读取
-            StartCoroutine(LoadBundleAsync(assetName, action));
+            StartCoroutine(LoadAssetAsync(assetName, action));
         }
 
-
-        // IMPORTANT: LoadLua是异步方法
         /// <summary>
-        /// 加载Lua资源
+        /// 加载 Lua 脚本资源
         /// </summary>
-        /// <param name="luaName"></param>
-        /// <param name="action"></param>
         public void LoadLua(string luaName, Action<UnityEngine.Object> action = null)
         {
-            // TODO: 弄清楚为什么这里不GetPath
             LoadAssets(luaName, action);
         }
 
-        // IMPORTANT: LoadUI是异步方法
         /// <summary>
-        ///  加载UI预制体资源
+        /// 加载 UI 预制体资源
         /// </summary>
-        /// <param name="assetName"></param>
-        /// <param name="action"></param>
         public void LoadUI(string assetName, Action<UnityEngine.Object> action = null)
         {
             LoadAssets(PathUtil.GetUIPath(assetName), action);
         }
 
-        // IMPORTANT: LoadMusic是异步方法
         /// <summary>
         /// 加载音乐资源
         /// </summary>
-        /// <param name="assetName"></param>
-        /// <param name="action"></param>
         public void LoadMusic(string assetName, Action<UnityEngine.Object> action = null)
         {
             LoadAssets(PathUtil.GetMusicPath(assetName), action);
         }
 
-        // IMPORTANT: LoadSound是异步方法
         /// <summary>
         /// 加载音效资源
         /// </summary>
-        /// <param name="assetName"></param>
-        /// <param name="action"></param>
         public void LoadSound(string assetName, Action<UnityEngine.Object> action = null)
         {
             LoadAssets(PathUtil.GetSoundPath(assetName), action);
         }
 
-        // IMPORTANT: LoadEffect是异步方法
         /// <summary>
         /// 加载特效资源
         /// </summary>
-        /// <param name="assetName"></param>
-        /// <param name="action"></param>
         public void LoadEffect(string assetName, Action<UnityEngine.Object> action = null)
         {
             LoadAssets(PathUtil.GetEffectPath(assetName), action);
         }
 
+        /// <summary>
+        /// 加载场景资源
+        /// </summary>
         public void LoadScene(string sceneName, Action<UnityEngine.Object> action = null)
         {
             LoadAssets(PathUtil.GetScenePath(sceneName), action);
         }
 
-        // 加载预制体
+        /// <summary>
+        /// 加载模型预制体资源
+        /// </summary>
         public void LoadModel(string entityName, Action<UnityEngine.Object> action = null)
         {
             LoadAssets(PathUtil.GetModelPath(entityName), action);
+        }
+
+        // ============================================================
+        // 引用计数管理（供 AssetPool 和其他 Manager 调用）
+        // ============================================================
+
+        /// <summary>
+        /// 增加引用计数
+        /// 当 AssetPool 或某个 Manager 持有资源时调用
+        /// </summary>
+        public void AddReference(string assetName)
+        {
+            if (!m_BundleInfoMap.TryGetValue(assetName, out BundleInfo info))
+            {
+                return;
+            }
+
+            string bundleName = info.BundleName;
+            if (m_LoadedAssetBundles.TryGetValue(bundleName, out LoadedAssetBundle lab))
+            {
+                lab.ReferenceCount++;
+            }
+
+            // 依赖包也要增加引用
+            for (int i = 0; i < info.Dependencies.Count; i++)
+            {
+                string depName = info.Dependencies[i];
+                if (m_LoadedAssetBundles.TryGetValue(depName, out LoadedAssetBundle depLab))
+                {
+                    depLab.ReferenceCount++;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 减少引用计数
+        /// 当 AssetPool 或某个 Manager 释放资源时调用
+        /// </summary>
+        public void ReleaseReference(string assetName)
+        {
+            if (!m_BundleInfoMap.TryGetValue(assetName, out BundleInfo info))
+            {
+                return;
+            }
+
+            string bundleName = info.BundleName;
+            if (m_LoadedAssetBundles.TryGetValue(bundleName, out LoadedAssetBundle lab))
+            {
+                lab.ReferenceCount--;
+            }
+
+            // 依赖包也要减少引用
+            for (int i = 0; i < info.Dependencies.Count; i++)
+            {
+                string depName = info.Dependencies[i];
+                if (m_LoadedAssetBundles.TryGetValue(depName, out LoadedAssetBundle depLab))
+                {
+                    depLab.ReferenceCount--;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 卸载 AssetBundle 资源
+        /// 由 AssetPool 超时清理时调用，或手动卸载时调用
+        /// </summary>
+        public void UnLoadAsset(string assetName)
+        {
+            if (!m_BundleInfoMap.TryGetValue(assetName, out BundleInfo info))
+            {
+                return;
+            }
+
+            // ---- 卸载主资源包 ----
+            string bundleName = info.BundleName;
+            if (m_LoadedAssetBundles.TryGetValue(bundleName, out LoadedAssetBundle lab))
+            {
+                if (lab.Bundle != null)
+                {
+                    lab.Bundle.Unload(true);
+                }
+                m_LoadedAssetBundles.Remove(bundleName);
+            }
+
+            // ---- 卸载依赖包（仅当引用计数为 0 时）----
+            for (int i = 0; i < info.Dependencies.Count; i++)
+            {
+                string depName = info.Dependencies[i];
+                if (m_LoadedAssetBundles.TryGetValue(depName, out LoadedAssetBundle depLab))
+                {
+                    depLab.ReferenceCount--;
+                    if (depLab.ReferenceCount <= 0)
+                    {
+                        if (depLab.Bundle != null)
+                        {
+                            depLab.Bundle.Unload(true);
+                        }
+                        m_LoadedAssetBundles.Remove(depName);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 检查资源是否已加载
+        /// </summary>
+        public bool IsAssetLoaded(string assetName)
+        {
+            if (m_BundleInfoMap.TryGetValue(assetName, out BundleInfo info))
+            {
+                return m_LoadedAssetBundles.ContainsKey(info.BundleName);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 获取资源的引用计数（调试用）
+        /// </summary>
+        public int GetReferenceCount(string assetName)
+        {
+            if (m_BundleInfoMap.TryGetValue(assetName, out BundleInfo info))
+            {
+                if (m_LoadedAssetBundles.TryGetValue(info.BundleName, out LoadedAssetBundle lab))
+                {
+                    return lab.ReferenceCount;
+                }
+            }
+            return 0;
         }
 
     }
