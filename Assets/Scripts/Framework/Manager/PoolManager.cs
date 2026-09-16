@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts.Framework.ObjectPool;
+using Assets.Scripts.Framework.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,8 +27,12 @@ namespace Assets.Scripts.Framework.Manager
         public void Init()
         {
             GameObject pool = new GameObject("Pool");
-            pool.transform.SetParent(this.transform, false);
+            pool.transform.SetParent(this.transform, false); // 现在就有一个Pool节点挂载在System上
             m_PoolRoot = pool.transform;
+
+            CreateGameObjectPool("UIPool", 10); // 创建一个UI 10秒没有使用就销毁
+            CreateGameObjectPool("EntityPool", 5); // 创建Entity对象池 5秒没有使用就销毁
+            
         }
 
 
@@ -42,11 +47,12 @@ namespace Assets.Scripts.Framework.Manager
         {
             if(!m_Pools.TryGetValue(poolName, out PoolBase pool))
             {
-                GameObject go = new GameObject(poolName);
-                go.transform.SetParent(m_PoolRoot, false);
-                pool = go.AddComponent<T>();
-                pool.Init(releaseTime);
-                m_Pools.Add(poolName, pool);
+                GameObject go = new GameObject(poolName); // 创建一个叫做poolName空物体
+                go.transform.SetParent(m_PoolRoot, false); // 挂载到Pool节点上
+                pool = go.AddComponent<T>(); // 给当前节点挂载脚本 什么类型的对象池就挂载什么脚本
+                pool.Init(releaseTime); // 初始化对象池，设置销毁时间
+                m_Pools.Add(poolName, pool); // 对象池管理器加入一个对象池
+                AppLog.LogDone("POOL", $"对象池 | 创建完成 | {poolName}");
             }
         }
         /// <summary>

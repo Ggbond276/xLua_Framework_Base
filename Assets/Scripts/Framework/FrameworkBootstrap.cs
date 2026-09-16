@@ -51,6 +51,7 @@ namespace Assets.Scripts.Framework
 
 
             // 第二阶段:挂载所有 Manager 到 Systems
+            PoolManager pool = _systems.AddComponent<PoolManager>(); // 将对象池的优先级提升到最高
             ResourcesManager resources = _systems.AddComponent<ResourcesManager>(); // 挂 5 个 Manager 到 Systems
             LuaManager lua = _systems.AddComponent<LuaManager>();
             UIManager ui = _systems.AddComponent<UIManager>();
@@ -58,7 +59,6 @@ namespace Assets.Scripts.Framework
             MySceneManager scene = _systems.AddComponent<MySceneManager>();
             SoundManager sound = _systems.AddComponent<SoundManager>();
             EventManager myEvent = _systems.AddComponent<EventManager>();
-            PoolManager pool = _systems.AddComponent<PoolManager>();
             GameManager game = _frameworkRoot.AddComponent<GameManager>();
         
 
@@ -68,6 +68,7 @@ namespace Assets.Scripts.Framework
             game.Inject(resources, lua, ui, entity, scene, sound, myEvent, pool);
 
             // 第四阶段:按顺序初始化(注意依赖关系)
+            pool.Init();
             lua.Init();
             resources.Init();
             entity.Init();
@@ -75,7 +76,7 @@ namespace Assets.Scripts.Framework
             scene.Init();
             sound.Init();
             myEvent.Init();
-            pool.Init();
+
 
             AppLog.LogDone("BOOT", "框架启动 | 阶段4/4 | 所有管理器初始化完成");
             game.OnFrameworkReady();

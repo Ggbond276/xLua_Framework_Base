@@ -44,7 +44,7 @@ namespace Assets.Scripts.Framework.Manager
         /// </summary>
         private Dictionary<string, BundleInfo> m_BundleInfos = new Dictionary<string, BundleInfo>();
         /// <summary>
-        /// key：ab包的名称 value：ab包的真正的内存资源
+        /// key：ab包的名称 value：ab包的真正的内存资源（现在LoadedBundle 应该作为一个状态容器）
         /// </summary>
         private Dictionary<string, AssetBundle> m_LoadedBundle = new Dictionary<string, AssetBundle>();
 

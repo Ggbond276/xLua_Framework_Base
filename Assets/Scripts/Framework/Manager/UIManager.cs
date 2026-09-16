@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts.Framework.Behaviour;
+using Assets.Scripts.Framework.ObjectPool;
 using Assets.Scripts.Framework.Util;
 using System;
 using System.Collections.Generic;
@@ -60,8 +61,15 @@ namespace Assets.Scripts.Framework.Manager
         // NOTE: 这里为了追求秒开体验选择使用空间换时间，玩家关闭UI的时候，代码根本没有调用Destory来摧毁物体
         // 而是单纯的SetActive(false), 这在单机小游戏中是没有问题的，但是如果进行大型游戏开发，玩家在两小时中
         // 打开了50个不同的界面，这50个界面全部都会堆积在内存永远不释放，最终游戏的内存会被撑爆，游戏直接闪退
+       
+        
+        
+        
+        /// <summary>
+        /// 引入对象池之后 管理器字典的职责就是只加入目前显示的对象
+        /// </summary>
         private Dictionary<string, GameObject> m_UIDict = new Dictionary<string, GameObject>();
-
+        private GameObjectPool uiPool;
 
 
         /// <summary>
@@ -113,9 +121,13 @@ namespace Assets.Scripts.Framework.Manager
             LoadingLayer = CreateLayer("LoadingLayer", canvasObj.transform);
         }
 
+        /// <summary>
+        /// 提升对象池初始化的优先级之后在UIManager初始化的时候就获取对象池了
+        /// </summary>
         internal void Init()
         {
             AppLog.LogDone("MGR", "UIManager | 初始化完成 | 4层级就绪");
+            uiPool = this.transform.Find("Pool/UIPool").GetComponent<GameObjectPool>(); // 获取对象池
         }
 
         /// <summary>
@@ -166,26 +178,41 @@ namespace Assets.Scripts.Framework.Manager
         /// </summary>
         /// <param name="uiName"></param>
         /// <param name="luaName"></param>
-        public void OpenUI(string uiName, string luaName, UILayer layer)
+        public void OpenUI(string uiName, string luaName, UILayer layer) // UIMain , UIMainLogic, 0
         {
-            if(string.IsNullOrEmpty(uiName))
+            if(string.IsNullOrEmpty(uiName)) // uiName不可以为空
             {
                 AppLog.LogWarning("MGR", $"UIManager | OpenUI | 参数为空 | uiName={uiName}");
                 return;
             }
-            if (m_UIDict.TryGetValue(uiName, out GameObject ui))
+
+            if (m_UIDict.ContainsKey(uiName)) // 如果UI是打开状态的不可以重复打开
             {
-                ui.SetActive(true);
-                ui.GetComponent<UILogic>()?.OnOpen();
                 return;
             }
+            
+            // ==================== 从对象池中获取对象 =======================
+
+            if(uiPool.isInPool(uiName)) // 如果对象在对象池中
+            {
+                GameObject obj = uiPool.Spwan(uiName) as GameObject; // 从对象池中将对象拿出来
+                obj.SetActive(true); // 设置为可见
+                obj.transform.SetParent(GetLayer(layer), false); // 挂载到对应的层级下
+                m_UIDict.Add(uiName, obj);
+                UILogic uiLogic = obj.GetComponent<UILogic>();
+                uiLogic.OnOpen();
+                return;
+            }
+            // ==========================================================
+
+            // 加载资源创建新的对象
             GameManager.Resources.LoadUI(uiName, (UnityEngine.Object obj) => {
                 if (obj == null) return;
-                GameObject go = Instantiate(obj) as GameObject;
+                GameObject go = Instantiate(obj) as GameObject; // 实例化新的对象
                 go.name = uiName;
-                go.transform.SetParent(GetLayer(layer), false);
+                go.transform.SetParent(GetLayer(layer), false); // 挂载到对应层级
                 go.transform.localScale = Vector3.one;
-                m_UIDict.Add(uiName, go);
+                m_UIDict.Add(uiName, go); // 设置为已开启状态
                 UILogic uiLogic = go.AddComponent<UILogic>();
                 uiLogic.Init(luaName);
                 uiLogic.OnOpen();
@@ -197,15 +224,18 @@ namespace Assets.Scripts.Framework.Manager
         /// <param name="uiName"></param>
         public void CloseUI(string uiName)
         {
-            if(m_UIDict.TryGetValue(uiName, out GameObject ui))
+            if (m_UIDict.TryGetValue(uiName, out GameObject ui)) // 如果确实是开启状态的
             {
-                ui.GetComponent<UILogic>()?.OnClose();
+                m_UIDict.Remove(uiName); // 关闭开启状态
                 ui.SetActive(false);
+                uiPool.UnSpwan(uiName, ui);
             } else
             {
-                AppLog.LogWarning("MGR", $"UIManager | CloseUI | 缓存未命中 | {uiName}");
+                AppLog.LogWarning("MGR", $"UIManager | CloseUI | UI从未打开 | {uiName}");
             }
         }
+
+
         /// <summary>
         /// 销毁UI面板
         /// </summary>
@@ -218,9 +248,5 @@ namespace Assets.Scripts.Framework.Manager
                 m_UIDict.Remove(uiName);
             }
         }
-
-
-
-        
     }
 }

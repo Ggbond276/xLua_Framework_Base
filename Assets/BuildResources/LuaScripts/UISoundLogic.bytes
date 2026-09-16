@@ -10,12 +10,13 @@ function OnOpen()
 --AppLog
 AppLog.LogSys("UISound", "音量界面被打开")
 -- 1. 获取所有的 Button 组件 
-    -- ⚠️ 注意路径：你的按钮都挂在 img_Bg 下面，所以必须带上 "img_Bg/" 前缀！
+    -- 注意路径：你的按钮都挂在 img_Bg 下面，所以必须带上 "img_Bg/" 前缀！
     local btn_PlayMusic = self.transform:Find("img_Bg/btn_PlayMusic"):GetComponent(typeof(CS.UnityEngine.UI.Button))
     local btn_StopMusic = self.transform:Find("img_Bg/btn_StopMusic"):GetComponent(typeof(CS.UnityEngine.UI.Button))
     local btn_PauseMusic = self.transform:Find("img_Bg/btn_PauseMusic"):GetComponent(typeof(CS.UnityEngine.UI.Button))
     local btn_UnpauseMusic = self.transform:Find("img_Bg/btn_UnpauseMusic"):GetComponent(typeof(CS.UnityEngine.UI.Button))
     local btn_Play_Sound = self.transform:Find("img_Bg/btn_Play_Sound"):GetComponent(typeof(CS.UnityEngine.UI.Button))
+    local btn_Close = self.transform:Find("img_Bg/btn_Close"):GetComponent(typeof(CS.UnityEngine.UI.Button))
 
     -- 2. 获取所有的 Slider 组件 (注意 typeof 里面变成了 Slider)
     local Slider_MusicVolume = self.transform:Find("img_Bg/Slider_MusicVolume"):GetComponent(typeof(CS.UnityEngine.UI.Slider))
@@ -91,8 +92,20 @@ AppLog.LogSys("UISound", "音量界面被打开")
         end)
     end
 
+
+    -- ==========================================
+    -- 5. 绑定按钮关闭事件
+    -- ==========================================
+    if btn_Close ~= nil then
+        btn_Close.onClick:AddListener(function()
+            AppLog.LogSys("UISound", "执行：关闭面板")
+            GameManager.UI:CloseUI("UISound");
+        end)
+    end
+
+
 end
 
 function OnClose()
-
+   AppLog.LogSys("UISound", "音量界面被关闭")
 end
