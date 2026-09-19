@@ -33,7 +33,7 @@ namespace XLua.CSObjectWrap
 			Utils.EndObjectRegister(type, L, translator, null, null,
 			    null, null, null);
 
-		    Utils.BeginClassRegister(type, L, __CreateInstance, 1, 8, 0);
+		    Utils.BeginClassRegister(type, L, __CreateInstance, 1, 9, 0);
 			
 			
             
@@ -45,6 +45,7 @@ namespace XLua.CSObjectWrap
             Utils.RegisterFunc(L, Utils.CLS_GETTER_IDX, "Sound", _g_get_Sound);
             Utils.RegisterFunc(L, Utils.CLS_GETTER_IDX, "Event", _g_get_Event);
             Utils.RegisterFunc(L, Utils.CLS_GETTER_IDX, "Pool", _g_get_Pool);
+            Utils.RegisterFunc(L, Utils.CLS_GETTER_IDX, "Net", _g_get_Net);
             
 			
 			
@@ -102,8 +103,9 @@ namespace XLua.CSObjectWrap
                     Assets.Scripts.Framework.Manager.SoundManager _sound = (Assets.Scripts.Framework.Manager.SoundManager)translator.GetObject(L, 7, typeof(Assets.Scripts.Framework.Manager.SoundManager));
                     Assets.Scripts.Framework.Manager.EventManager _myEvent = (Assets.Scripts.Framework.Manager.EventManager)translator.GetObject(L, 8, typeof(Assets.Scripts.Framework.Manager.EventManager));
                     Assets.Scripts.Framework.Manager.PoolManager _pool = (Assets.Scripts.Framework.Manager.PoolManager)translator.GetObject(L, 9, typeof(Assets.Scripts.Framework.Manager.PoolManager));
+                    Assets.Scripts.Framework.Manager.NetManager _net = (Assets.Scripts.Framework.Manager.NetManager)translator.GetObject(L, 10, typeof(Assets.Scripts.Framework.Manager.NetManager));
                     
-                    gen_to_be_invoked.Inject( _resources, _lua, _ui, _entity, _scene, _sound, _myEvent, _pool );
+                    gen_to_be_invoked.Inject( _resources, _lua, _ui, _entity, _scene, _sound, _myEvent, _pool, _net );
                     
                     
                     
@@ -236,6 +238,18 @@ namespace XLua.CSObjectWrap
 		    try {
                 ObjectTranslator translator = ObjectTranslatorPool.Instance.Find(L);
 			    translator.Push(L, Assets.Scripts.Framework.Manager.GameManager.Pool);
+            } catch(System.Exception gen_e) {
+                return LuaAPI.luaL_error(L, "c# exception:" + gen_e);
+            }
+            return 1;
+        }
+        
+        [MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+        static int _g_get_Net(RealStatePtr L)
+        {
+		    try {
+                ObjectTranslator translator = ObjectTranslatorPool.Instance.Find(L);
+			    translator.Push(L, Assets.Scripts.Framework.Manager.GameManager.Net);
             } catch(System.Exception gen_e) {
                 return LuaAPI.luaL_error(L, "c# exception:" + gen_e);
             }

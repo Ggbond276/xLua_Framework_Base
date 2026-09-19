@@ -1,0 +1,28 @@
+function Class(super)
+    local class = nil;
+    if super then
+    Class = setmetatable({}, {__index = super})
+    Class.super = super;
+    else
+        Class = {ctor = function() end}
+    end
+    class.__index = class;
+
+    function class:new(...)
+        local instance = setmetatable({}, class)
+
+        local function create(instance, ...)
+            if type(instance.super) == "table" then
+                create(instance.super, ...)
+            end
+            if type(instance.ctor) == "function" then
+                instance.ctor(instance, ...)
+            end
+        end
+        create(instance, ...)
+        return instance
+    end
+    return class;
+end
+    
+
